@@ -1,0 +1,32 @@
+2021-03-01 06:00:01.25 Server      Microsoft SQL Server 2019 (RTM-CU8) (KB4577194) - 15.0.4073.23 (X64) 
+	Sep 23 2020 16:03:08 
+	Copyright (C) 2019 Microsoft Corporation
+	Enterprise Edition (64-bit) on Windows Server 2019 Standard 10.0 <X64> (Build 17763: ) (Hypervisor)
+
+2021-03-01 06:00:01.25 Server      UTC adjustment: -5:00
+2021-03-01 06:00:01.25 Server      (c) Microsoft Corporation.
+2021-03-01 06:00:01.25 Server      All rights reserved.
+2021-03-01 06:00:01.25 Server      Server process ID is 4184.
+2021-03-01 06:00:01.25 Server      System Manufacturer: 'VMware, Inc.', System Model: 'VMware7,1'.
+2021-03-01 06:00:01.25 Server      Authentication mode is MIXED.
+2021-03-01 06:00:01.25 Server      Logging SQL Server messages in file 'C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\Log\ERRORLOG'.
+2021-03-01 06:00:01.25 Server      The service account is 'CONTOSO\svc_sqlprod'. This is an informational message; no user action is required.
+2021-03-01 06:00:01.25 Server      Registry startup parameters: 
+	 -d C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\DATA\master.mdf
+	 -e C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\Log\ERRORLOG
+	 -l C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\DATA\mastlog.ldf
+2021-03-01 06:00:01.25 Server      Command Line Startup Parameters:
+	 -s "MSSQLSERVER"
+2021-03-01 06:00:01.26 Server      SQL Server detected 2 sockets with 4 cores per socket and 4 logical processors per socket, 8 total logical processors; using 8 logical processors based on SQL Server licensing. This is an informational message; no user action is required.
+2021-03-01 06:00:01.26 Server      SQL Server is starting at normal priority base (=7). This is an informational message only. No user action is required.
+2021-03-01 06:00:01.26 Server      Detected 65535 MB of RAM. This is an informational message; no user action is required.
+2021-03-01 06:00:01.26 Server      Using conventional memory in the memory manager.
+2021-03-01 06:00:01.40 Server      Default collation: SQL_Latin1_General_CP1_CI_AS (us_english 1033)
+2021-03-01 06:00:02.10 spid8s      Starting up database 'master'.
+2021-03-01 06:00:03.01 spid8s      1 transactions rolled forward in database 'master' (1:0). This is an informational message only. No user action is required.
+2021-03-01 06:00:03.05 spid8s      Recovery is writing a checkpoint in database 'master' (1). This is an informational message only. No user action is required.
+2021-03-01 06:00:03.20 spid8s      Recovery completed for database master (database ID 1) in 1 second(s) (analysis 21 ms, redo 0 ms, undo 18 ms.) This is an informational message only. No user action is required.
+2021-03-01 06:00:04.80 spid8s      Starting up database 'Sales'.
+2021-03-01 06:00:07.31 spid8s      Recovery of database 'Sales' (5) is 45% complete (approximately 4 seconds remain). Phase 2 of 3. This is an informational message only. No user action is required.
+2021-03-01 06:00:09.90 spid6s      Recovery is complete. This is an informational message only. No user action is required.
+2021-03-01 06:00:10.02 spid6s      SQL Server is now ready for client connections. This is an informational message; no user action is required.
