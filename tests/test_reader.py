@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime
 
-from errorlog_insight.reader import decode, parse_entries, read_entries
+from errorlog_insight.reader import decode, parse_entries, parse_readerrorlog, read_entries
 from tests.helpers import fixture
 
 
@@ -38,6 +38,28 @@ class ReaderTests(unittest.TestCase):
         entries = parse_entries("junk before\n2021-01-01 00:00:00.10 spid5s      hello\n")
         self.assertEqual(len(entries), 1)
         self.assertEqual(entries[0].text, "hello")
+
+
+class ReaderrorlogTests(unittest.TestCase):
+    def test_reads_tab_separated_output(self):
+        entries = read_entries(fixture("sp_readerrorlog.tsv"))
+        self.assertEqual(len(entries), 5)
+        self.assertEqual(entries[0].process, "Logon")
+        self.assertEqual(entries[0].timestamp, datetime(2021, 3, 2, 8, 14, 22, 350000))
+
+    def test_quoted_multiline_text_is_kept(self):
+        entries = read_entries(fixture("sp_readerrorlog.tsv"))
+        banner = entries[2]
+        self.assertEqual(len(banner.text.splitlines()), 4)
+        self.assertIn("Enterprise Edition", banner.text)
+
+    def test_embedded_quotes(self):
+        entries = read_entries(fixture("sp_readerrorlog.tsv"))
+        self.assertEqual(entries[3].text, 'Using "dbghelp.dll" version "4.0.5"')
+
+    def test_rejects_missing_header(self):
+        with self.assertRaises(ValueError):
+            parse_readerrorlog("Date\tProc\tText\n")
 
 
 if __name__ == "__main__":

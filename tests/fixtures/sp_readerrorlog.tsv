@@ -1,0 +1,10 @@
+LogDate	ProcessInfo	Text
+2021-03-02 08:14:22.350	Logon	Error: 18456, Severity: 14, State: 8.
+2021-03-02 08:14:22.350	Logon	Login failed for user 'sa'. Reason: Password did not match that for the login provided. [CLIENT: 10.20.4.77]
+2021-03-02 08:15:01.130	Server	"Microsoft SQL Server 2019 (RTM-CU8) (KB4577194) - 15.0.4073.23 (X64) 
+	Sep 23 2020 16:03:08 
+	Copyright (C) 2019 Microsoft Corporation
+	Enterprise Edition (64-bit) on Windows Server 2019 Standard 10.0 <X64> (Build 17763: ) (Hypervisor)
+"
+2021-03-02 08:15:30.870	spid57	"Using ""dbghelp.dll"" version ""4.0.5"""
+2021-03-02 08:20:12.020	Backup	Database backed up. Database: Sales, creation date(time): 2020/11/02(09:12:40), pages dumped: 3012456, first LSN: 120987:44321:37, last LSN: 120987:44369:1, number of dump devices: 1, device information: (FILE=1, TYPE=DISK: {'\\FILESRV01\SQLBackups\Sales\Sales_FULL_20210302_080001.bak'}). This is an informational message only. No user action is required.
