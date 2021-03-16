@@ -1,5 +1,5 @@
 """Data model shared by the reader and the analysers."""
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 
 
@@ -16,3 +16,23 @@ class Entry:
     @property
     def first_line(self):
         return self.text.split("\n", 1)[0]
+
+
+SEVERITIES = ("info", "warning", "error", "critical")
+
+
+def severity_rank(name):
+    return SEVERITIES.index(name)
+
+
+@dataclass
+class Finding:
+    """A classified entry: what it is, how bad it is, and what to try next."""
+
+    entry: Entry
+    category: str
+    code: str
+    severity: str
+    title: str
+    details: dict = field(default_factory=dict)
+    advice: str = ""

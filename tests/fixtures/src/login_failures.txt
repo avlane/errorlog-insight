@@ -1,0 +1,30 @@
+2021-03-02 07:55:10.42 Logon       Error: 18456, Severity: 14, State: 5.
+2021-03-02 07:55:10.42 Logon       Login failed for user 'webapp_old'. Reason: Could not find a login matching the name provided. [CLIENT: 10.20.4.31]
+2021-03-02 08:14:22.35 Logon       Error: 18456, Severity: 14, State: 8.
+2021-03-02 08:14:22.35 Logon       Login failed for user 'sa'. Reason: Password did not match that for the login provided. [CLIENT: 10.20.4.77]
+2021-03-02 08:14:23.91 Logon       Error: 18456, Severity: 14, State: 8.
+2021-03-02 08:14:23.91 Logon       Login failed for user 'sa'. Reason: Password did not match that for the login provided. [CLIENT: 10.20.4.77]
+2021-03-02 08:14:25.12 Logon       Error: 18456, Severity: 14, State: 8.
+2021-03-02 08:14:25.12 Logon       Login failed for user 'sa'. Reason: Password did not match that for the login provided. [CLIENT: 10.20.4.77]
+2021-03-02 08:14:26.60 Logon       Error: 18456, Severity: 14, State: 8.
+2021-03-02 08:14:26.60 Logon       Login failed for user 'sa'. Reason: Password did not match that for the login provided. [CLIENT: 10.20.4.77]
+2021-03-02 08:14:27.83 Logon       Error: 18456, Severity: 14, State: 8.
+2021-03-02 08:14:27.83 Logon       Login failed for user 'sa'. Reason: Password did not match that for the login provided. [CLIENT: 10.20.4.77]
+2021-03-02 08:14:29.04 Logon       Error: 18456, Severity: 14, State: 8.
+2021-03-02 08:14:29.04 Logon       Login failed for user 'sa'. Reason: Password did not match that for the login provided. [CLIENT: 10.20.4.77]
+2021-03-02 09:02:44.17 Logon       Error: 18456, Severity: 14, State: 7.
+2021-03-02 09:02:44.17 Logon       Login failed for user 'reports'. Reason: Account is disabled. [CLIENT: 10.20.8.15]
+2021-03-02 09:30:05.50 Logon       Error: 18456, Severity: 14, State: 11.
+2021-03-02 09:30:05.50 Logon       Login failed for user 'CONTOSO\jdoe'. Reason: Token-based server access validation failed with an infrastructure error. Check for previous errors. [CLIENT: 10.20.8.19]
+2021-03-02 10:11:48.22 Logon       Error: 18456, Severity: 14, State: 38.
+2021-03-02 10:11:48.22 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2021-03-02 10:45:12.71 Logon       Error: 18456, Severity: 14, State: 58.
+2021-03-02 10:45:12.71 Logon       Login failed for user 'etl_loader'. Reason: An attempt to login using SQL authentication failed. Server is configured for Windows authentication only. [CLIENT: 10.20.9.4]
+2021-03-02 11:20:37.09 Logon       Error: 18456, Severity: 14, State: 6.
+2021-03-02 11:20:37.09 Logon       Login failed for user 'CONTOSO\svc_app'. Reason: Attempting to use an NT account name with SQL Server Authentication. [CLIENT: 10.20.4.52]
+2021-03-02 13:05:51.64 Logon       Error: 18456, Severity: 14, State: 18.
+2021-03-02 13:05:51.64 Logon       Login failed for user 'tempuser'. Reason: The password of the account must be changed. [CLIENT: <local machine>]
+2021-03-02 14:40:09.30 Logon       Error: 18456, Severity: 14, State: 1.
+2021-03-02 14:40:09.30 Logon       Login failed for user 'mystery'. [CLIENT: 10.20.99.3]
+2021-03-02 15:18:33.45 Logon       Error: 18456, Severity: 14, State: 12.
+2021-03-02 15:18:33.45 Logon       Login failed for user 'CONTOSO\kwong'. Reason: Login-based server access validation failed with an infrastructure error. Check for previous errors. [CLIENT: 10.20.8.22]
