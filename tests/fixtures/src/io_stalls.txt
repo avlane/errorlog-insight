@@ -1,0 +1,17 @@
+2021-04-06 01:00:00.12 spid57      I/O is frozen on database Sales. No user action is required. However, if I/O is not resumed promptly, you could cancel the backup.
+2021-04-06 01:00:03.40 spid57      I/O was resumed on database Sales. No user action is required.
+2021-04-06 02:12:40.77 spid22s     FlushCache: cleaned up 150321 bufs with 5612 writes in 71530 ms (avoided 1012 new dirty bufs) for db 5:0
+			average throughput: 16.42 MB/sec, I/O saturation: 21103, context switches 45012
+			last target outstanding: 65536, avgWriteLatency 1
+
+2021-04-06 02:14:11.12 spid22s     SQL Server has encountered 3 occurrence(s) of I/O requests taking longer than 15 seconds to complete on file [E:\SQLData\Sales_Data1.mdf] in database [Sales] (5).  The OS file handle is 0x00000000000009C4.  The offset of the latest long I/O is: 0x000000a1c60000
+2021-04-06 02:19:11.30 spid22s     SQL Server has encountered 7 occurrence(s) of I/O requests taking longer than 15 seconds to complete on file [E:\SQLData\Sales_Data1.mdf] in database [Sales] (5).  The OS file handle is 0x00000000000009C4.  The offset of the latest long I/O is: 0x000000a1c60000
+2021-04-06 02:19:40.02 spid22s     SQL Server has encountered 2 occurrence(s) of I/O requests taking longer than 15 seconds to complete on file [F:\SQLLogs\Sales_log.ldf] in database [Sales] (5).  The OS file handle is 0x0000000000000A84.  The offset of the latest long I/O is: 0x0000000047d000
+2021-04-06 02:24:12.01 spid22s     SQL Server has encountered 7 occurrence(s) of I/O requests taking longer than 30 seconds to complete on file [E:\SQLData\Sales_Data1.mdf] in database [Sales] (5).  The OS file handle is 0x00000000000009C4.  The offset of the latest long I/O is: 0x000000a1ce0000
+2021-04-06 02:29:12.10 spid22s     SQL Server has encountered 12 occurrence(s) of I/O requests taking longer than 45 seconds to complete on file [E:\SQLData\Sales_Data1.mdf] in database [Sales] (5).  The OS file handle is 0x00000000000009C4.  The offset of the latest long I/O is: 0x000000a2150000
+2021-04-06 02:40:05.88 spid22s     FlushCache: cleaned up 98114 bufs with 5612 writes in 44910 ms (avoided 1012 new dirty bufs) for db 5:0
+			average throughput: 16.42 MB/sec, I/O saturation: 21103, context switches 45012
+			last target outstanding: 65536, avgWriteLatency 1
+
+2021-04-06 03:05:30.45 spid22s     SQL Server has encountered 1 occurrence(s) of I/O requests taking longer than 15 seconds to complete on file [T:\TempDB\tempdev2.ndf] in database [tempdb] (2).  The OS file handle is 0x0000000000000B10.  The offset of the latest long I/O is: 0x00000000b64000
+2021-04-06 03:30:02.61 spid22s     SQL Server has encountered 4 occurrence(s) of I/O requests taking longer than 15 seconds to complete on file [\\FILESRV01\SQLData\Archive_2019.ndf] in database [Archive] (9).  The OS file handle is 0x0000000000000C38.  The offset of the latest long I/O is: 0x0000000a000000
