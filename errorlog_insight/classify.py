@@ -11,6 +11,12 @@ from .model import Finding
 
 RULES = []
 
+# Human-readable name per message number / pseudo code, used by the reports.
+LABELS = {
+    "18456": "Login failures",
+    "833": "Slow I/O (833)",
+}
+
 ERROR_HEADER_RE = re.compile(r"^Error: (\d+), Severity: (\d+), State: (\d+)\.")
 HEADER_WINDOW_SECONDS = 5
 

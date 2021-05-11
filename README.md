@@ -9,16 +9,18 @@ logical entry can span several physical lines (the startup banner, stack dumps,
 and (as it grows) classifies the well-known messages, groups the unknown ones
 and points at the interesting parts.
 
-## Status
+## Usage
 
-Early days. Right now it only reads files:
-
-```python
-from errorlog_insight.reader import read_entries
-
-for entry in read_entries("ERRORLOG.1"):
-    print(entry.timestamp, entry.process, entry.first_line)
 ```
+python3 -m errorlog_insight ERRORLOG ERRORLOG.1
+```
+
+prints the findings grouped by message number, worst first, with a hint on what
+to look at next. Files can be the real UTF-16 ERRORLOG or text saved from
+`sp_readerrorlog`.
+
+Recognised so far: failed logins (18456, with the state decoded into a cause)
+and slow I/O warnings (833, with file, database and duration).
 
 ## Tests
 
