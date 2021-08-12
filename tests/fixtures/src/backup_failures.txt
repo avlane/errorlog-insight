@@ -1,0 +1,16 @@
+2021-08-03 01:00:02.21 Backup      Error: 18204, Severity: 16, State: 1.
+2021-08-03 01:00:02.21 Backup      BackupDiskFile::CreateMedia: Backup device '\\FILESRV01\SQLBackups\Sales\Sales_FULL_20210803_010002.bak' failed to create. Operating system error 53(The network path was not found.).
+2021-08-03 01:00:02.23 Backup      Error: 3041, Severity: 16, State: 1.
+2021-08-03 01:00:02.23 Backup      BACKUP failed to complete the command BACKUP DATABASE Sales. Check the backup application log for detailed messages.
+2021-08-03 02:00:01.50 Backup      Error: 3201, Severity: 16, State: 1.
+2021-08-03 02:00:01.50 Backup      Cannot open backup device 'D:\Backups\Reporting\Reporting_LOG_20210803_0200.trn'. Operating system error 5(Access is denied.).
+2021-08-03 02:00:01.52 Backup      Error: 3041, Severity: 16, State: 1.
+2021-08-03 02:00:01.52 Backup      BACKUP failed to complete the command BACKUP LOG Reporting. Check the backup application log for detailed messages.
+2021-08-03 03:00:41.02 Backup      Database backed up. Database: Staging, creation date(time): 2021/02/11(14:05:10), pages dumped: 412876, first LSN: 55021:1288:37, last LSN: 55021:1344:1, number of dump devices: 1, device information: (FILE=1, TYPE=DISK: {'D:\Backups\Staging\Staging_FULL_20210803_030000.bak'}). This is an informational message only. No user action is required.
+2021-08-03 03:15:03.77 Backup      Log was backed up. Database: Sales, creation date(time): 2020/11/02(09:12:40), first LSN: 120987:44369:1, last LSN: 120987:45002:1, number of dump devices: 1, device information: (FILE=1, TYPE=DISK: {'\\FILESRV01\SQLBackups\Sales\Sales_LOG_20210803_0315.trn'}). This is an informational message only. No user action is required.
+2021-08-03 03:30:12.40 Backup      Error: 18204, Severity: 16, State: 1.
+2021-08-03 03:30:12.40 Backup      BackupDiskFile::CreateMedia: Backup device 'E:\Backups\Archive\Archive_FULL_20210803_033000.bak' failed to create. Operating system error 112(There is not enough space on the disk.).
+2021-08-03 03:30:12.43 Backup      Error: 3041, Severity: 16, State: 1.
+2021-08-03 03:30:12.43 Backup      BACKUP failed to complete the command BACKUP DATABASE [Archive] WITH COPY_ONLY. Check the backup application log for detailed messages.
+2021-08-03 04:00:00.88 spid58      Error: 4208, Severity: 16, State: 1.
+2021-08-03 04:00:00.88 spid58      The statement BACKUP LOG is not allowed while the recovery model is SIMPLE. Use BACKUP DATABASE or change the recovery model using ALTER DATABASE.
