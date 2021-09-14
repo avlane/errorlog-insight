@@ -1,0 +1,7 @@
+2021-09-12 22:29:58.02 spid61      Setting database option RECOVERY to SIMPLE for database 'Staging'.
+2021-09-12 22:30:00.11 spid28s     SQL Server is terminating in response to a 'stop' request from Service Control Manager. This is an informational message only. No user action is required.
+2021-09-12 22:30:00.13 spid28s     Service Broker manager has shut down.
+2021-09-12 22:30:00.60 spid28s     SQL Server shutdown has been initiated
+2021-09-12 22:30:00.60 spid28s     SQL Trace was stopped due to server shutdown. Trace ID = '1'. This is an informational message only; no user action is required.
+2021-09-13 03:12:44.50 spid9s      SQL Server is terminating because of a system shutdown. This is an informational message only. No user action is required.
+2021-09-13 03:12:45.01 spid9s      The error log has been reinitialized. See the previous log for older entries.

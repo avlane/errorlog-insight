@@ -1,0 +1,10 @@
+2021-09-14 06:00:02.50 Server      Software Usage Metrics is disabled.
+2021-09-14 06:00:03.11 Server      Database Instant File Initialization: enabled. For security and performance considerations see the topic 'Database Instant File Initialization' in SQL Server Books Online. This is an informational message only. No user action is required.
+2021-09-14 06:00:05.31 spid9s      Common language runtime (CLR) functionality initialized using CLR version v4.0.30319 from C:\Windows\Microsoft.NET\Framework64\v4.0.30319\.
+2021-09-14 06:00:06.04 spid10s     A new instance of the full-text filter daemon host process has been successfully started.
+2021-09-14 06:00:06.90 spid10s     Service Broker manager has started.
+2021-09-14 06:00:07.33 spid25s     Resource governor reconfiguration succeeded.
+2021-09-14 06:10:44.21 spid53      Using 'xplog70.dll' version '2019.150.2000' to execute extended stored procedure 'xp_instance_regread'. This is an informational message only; no user action is required.
+2021-09-14 06:12:01.07 spid57      Using 'xpstar.dll' version '2019.150.2000' to execute extended stored procedure 'xp_msver'. This is an informational message only; no user action is required.
+2021-09-14 07:00:00.05 spid62      Configuration option 'max degree of parallelism' changed from 0 to 4. Run the RECONFIGURE statement to install.
+2021-09-14 07:00:00.07 spid62      Configuration option 'cost threshold for parallelism' changed from 5 to 50. Run the RECONFIGURE statement to install.

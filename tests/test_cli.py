@@ -31,7 +31,7 @@ class CliTests(unittest.TestCase):
         self.assertIn("Findings: 22", text)
 
     def test_nothing_recognised(self):
-        _, text = run("startup_2019.log")
+        _, text = run("noise.log")
         self.assertIn("Nothing recognised.", text)
 
     def test_period_line(self):
