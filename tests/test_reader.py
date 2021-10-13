@@ -30,9 +30,31 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(entries[0].lineno, 1)
         self.assertEqual(entries[1].lineno, 6)
 
-    def test_decode_requires_bom_for_utf16(self):
+    def test_decode_with_bom(self):
         raw = b"\xff\xfe" + "2021-01-01 00:00:00.00 Server x".encode("utf-16-le")
         self.assertTrue(decode(raw).startswith("2021-01-01"))
+
+    def test_decode_utf16_without_bom(self):
+        raw = "2021-01-01 00:00:00.00 Server x\r\n".encode("utf-16-le")
+        self.assertTrue(decode(raw).startswith("2021-01-01"))
+
+    def test_decode_truncated_utf16(self):
+        # a copy taken while SQL Server was mid-write can end on half a character
+        raw = b"\xff\xfe" + "2021-01-01 00:00:00.00 Server hello".encode("utf-16-le") + b"\x41"
+        self.assertTrue(decode(raw).endswith("hello"))
+
+    def test_decode_big_endian_bom(self):
+        raw = b"\xfe\xff" + "2021-01-01 00:00:00.00 Server x".encode("utf-16-be")
+        self.assertIn("Server x", decode(raw))
+
+    def test_decode_utf8_and_legacy_code_page(self):
+        self.assertEqual(decode(b"\xef\xbb\xbfabc"), "abc")
+        self.assertEqual(decode("caf\u00e9".encode("cp1252")), "caf\u00e9")
+
+    def test_crlf_and_stray_nul_bytes(self):
+        text = "2021-01-01 00:00:00.00 Server a\x00b\r\n\tcontinued\r\n2021-01-01 00:00:01.00 spid5s      c\r\n"
+        entries = parse_entries(text)
+        self.assertEqual([e.text for e in entries], ["ab\n\tcontinued", "c"])
 
     def test_parse_entries_ignores_leading_junk(self):
         entries = parse_entries("junk before\n2021-01-01 00:00:00.10 spid5s      hello\n")

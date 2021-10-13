@@ -21,11 +21,34 @@ LINE_RE = re.compile(
 )
 
 
+def _looks_like_utf16_le(data):
+    """UTF-16 LE text without a BOM: ASCII characters alternate with NUL bytes."""
+    sample = data[:200]
+    if len(sample) < 4:
+        return False
+    odd = sample[1::2]
+    return odd.count(0) >= 0.8 * len(odd)
+
+
 def decode(data):
-    """Decode raw ERRORLOG bytes to text."""
+    """Decode raw ERRORLOG bytes to text.
+
+    SQL Server writes UTF-16 LE with a BOM, but files that were copied while the
+    instance was still writing can end in half a character, tools sometimes drop
+    the BOM, and old or Linux logs may be UTF-8 or a legacy code page.
+    """
     if data.startswith(codecs.BOM_UTF16_LE):
-        return data[2:].decode("utf-16-le")
-    return data.decode("utf-8-sig")
+        body = data[2:]
+        return body[: len(body) // 2 * 2].decode("utf-16-le", errors="replace")
+    if data.startswith(codecs.BOM_UTF16_BE):
+        body = data[2:]
+        return body[: len(body) // 2 * 2].decode("utf-16-be", errors="replace")
+    if _looks_like_utf16_le(data):
+        return data[: len(data) // 2 * 2].decode("utf-16-le", errors="replace")
+    try:
+        return data.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        return data.decode("cp1252", errors="replace")
 
 
 def _timestamp(m):
@@ -39,6 +62,7 @@ def parse_entries(text, source=""):
     entries = []
     current = None
     for lineno, line in enumerate(text.splitlines(), 1):
+        line = line.replace("\x00", "")
         m = LINE_RE.match(line)
         if m:
             current = Entry(_timestamp(m), m.group(8), m.group(9) or "", source, lineno)
