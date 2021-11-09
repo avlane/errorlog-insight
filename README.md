@@ -31,4 +31,5 @@ python3 -m unittest discover
 Fixtures live in `tests/fixtures/`. The `.log` files are UTF-16 LE with BOM and
 CRLF line endings like the real thing; the readable sources are in
 `tests/fixtures/src/` and `tools/encode_log.py` converts between them.
+GitHub Actions runs the same command on Python 3.8 to 3.10.
 All server names, logins and addresses in the fixtures are made up.
