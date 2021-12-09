@@ -1,0 +1,56 @@
+2021-11-02 09:10:00.40 spid53      Using 'xplog70.dll' version '2019.150.2000' to execute extended stored procedure 'xp_instance_regread'. This is an informational message only; no user action is required.
+2021-11-02 09:14:11.20 spid17s     deadlock-list
+2021-11-02 09:14:11.20 spid17s      deadlock victim=process1e8f3c8c8
+2021-11-02 09:14:11.20 spid17s       process-list
+2021-11-02 09:14:11.21 spid17s        process id=process1e8f3c8c8 taskpriority=0 logused=0 waitresource=KEY: 5:72057594043432960 (a1b2c3d4e5f6) waittime=4120 ownerId=1830021 transactionname=user_transaction lasttranstarted=2021-11-02T09:14:07.133 XDES=0x1e8f2ab40 lockMode=U schedulerid=3 kpid=5188 status=suspended spid=57 sbid=0 ecid=0 priority=0 trancount=2 lastbatchstarted=2021-11-02T09:14:07.130 lastbatchcompleted=2021-11-02T09:14:07.130 lastattention=1900-01-01T00:00:00.130 clientapp=SalesPortal hostname=WEB03 hostpid=4412 loginname=CONTOSO\svc_portal isolationlevel=read committed (2) xactid=1830021 currentdb=5 currentdbname=Sales lockTimeout=4294967295 clientoption1=671088672 clientoption2=128056
+2021-11-02 09:14:11.21 spid17s         executionStack
+2021-11-02 09:14:11.21 spid17s          frame procname=Sales.dbo.usp_UpdateOrderStatus line=18 stmtstart=1064 stmtend=1342 sqlhandle=0x03000500b3ab2c1b2f7e5a0185ad0000010000000000000000000000000000000000000000000000
+2021-11-02 09:14:11.22 spid17s     UPDATE dbo.Orders SET Status = @Status, ModifiedAt = SYSUTCDATETIME() WHERE OrderID = @OrderID     
+2021-11-02 09:14:11.22 spid17s          frame procname=adhoc line=1 sqlhandle=0x02000000f1aa3b0e0c5f4be1ba27a6c3a30f57f10000000000000000000000000000000000000000
+2021-11-02 09:14:11.22 spid17s     EXEC dbo.usp_UpdateOrderStatus @OrderID = @p0, @Status = @p1     
+2021-11-02 09:14:11.23 spid17s         inputbuf
+2021-11-02 09:14:11.23 spid17s     Proc [Database Id = 5 Object Id = 1263343747]   
+2021-11-02 09:14:11.23 spid17s        process id=process1e8f3d468 taskpriority=0 logused=2416 waitresource=KEY: 5:72057594043498496 (5d2e1c8a90b4) waittime=4118 ownerId=1830044 transactionname=user_transaction lasttranstarted=2021-11-02T09:14:07.127 XDES=0x1e8f2b1c0 lockMode=U schedulerid=5 kpid=6244 status=suspended spid=64 sbid=0 ecid=0 priority=0 trancount=2 lastbatchstarted=2021-11-02T09:14:07.127 lastbatchcompleted=2021-11-02T09:14:07.120 lastattention=1900-01-01T00:00:00.120 clientapp=SalesPortal hostname=WEB04 hostpid=3720 loginname=CONTOSO\svc_portal isolationlevel=read committed (2) xactid=1830044 currentdb=5 currentdbname=Sales lockTimeout=4294967295 clientoption1=671088672 clientoption2=128056
+2021-11-02 09:14:11.24 spid17s         executionStack
+2021-11-02 09:14:11.24 spid17s          frame procname=Sales.dbo.usp_AddOrderLine line=27 stmtstart=1790 stmtend=2056 sqlhandle=0x03000500d1c4e2492f7e5a0185ad0000010000000000000000000000000000000000000000000000
+2021-11-02 09:14:11.24 spid17s     UPDATE dbo.OrderLines SET Quantity = Quantity + @Qty WHERE OrderID = @OrderID AND LineNo = @LineNo     
+2021-11-02 09:14:11.25 spid17s         inputbuf
+2021-11-02 09:14:11.25 spid17s     Proc [Database Id = 5 Object Id = 1279343804]   
+2021-11-02 09:14:11.25 spid17s       resource-list
+2021-11-02 09:14:11.26 spid17s        keylock hobtid=72057594043498496 dbid=5 objectname=Sales.dbo.OrderLines indexname=PK_OrderLines id=lock1e8e5b180 mode=X associatedObjectId=72057594043498496
+2021-11-02 09:14:11.26 spid17s         owner-list
+2021-11-02 09:14:11.26 spid17s          owner id=process1e8f3c8c8 mode=X
+2021-11-02 09:14:11.27 spid17s         waiter-list
+2021-11-02 09:14:11.27 spid17s          waiter id=process1e8f3d468 mode=U requestType=wait
+2021-11-02 09:14:11.27 spid17s        keylock hobtid=72057594043432960 dbid=5 objectname=Sales.dbo.Orders indexname=PK_Orders id=lock1e8e5ba80 mode=X associatedObjectId=72057594043432960
+2021-11-02 09:14:11.28 spid17s         owner-list
+2021-11-02 09:14:11.28 spid17s          owner id=process1e8f3d468 mode=X
+2021-11-02 09:14:11.28 spid17s         waiter-list
+2021-11-02 09:14:11.29 spid17s          waiter id=process1e8f3c8c8 mode=U requestType=wait
+2021-11-02 09:14:13.77 spid57      Setting database option READ_COMMITTED_SNAPSHOT to ON for database 'Reporting'.
+2021-11-02 14:02:53.85 spid21s     deadlock-list
+2021-11-02 14:02:53.85 spid21s      deadlock victim=process1e8f40108
+2021-11-02 14:02:53.85 spid21s       process-list
+2021-11-02 14:02:53.86 spid21s        process id=process1e8f40108 taskpriority=0 logused=10000 waitresource=RID: 5:1:23456:7 waittime=2210 ownerId=1904412 transactionname=UPDATE lasttranstarted=2021-11-02T14:02:51.640 XDES=0x1e8f2c300 lockMode=U schedulerid=2 kpid=7012 status=suspended spid=88 sbid=0 ecid=0 priority=0 trancount=2 lastbatchstarted=2021-11-02T14:02:51.640 lastbatchcompleted=2021-11-02T14:02:44.200 lastattention=1900-01-01T00:00:00.200 clientapp=Microsoft SQL Server Management Studio - Query hostname=DBA-WS01 hostpid=9136 loginname=CONTOSO\kwong isolationlevel=read committed (2) xactid=1904412 currentdb=5 currentdbname=Sales lockTimeout=4294967295 clientoption1=671090784 clientoption2=390200
+2021-11-02 14:02:53.86 spid21s         executionStack
+2021-11-02 14:02:53.86 spid21s          frame procname=adhoc line=3 stmtstart=62 stmtend=210 sqlhandle=0x0200000058a3e11d9c1f0a2f3b8d3c7c5f2b1ae4000000000000000000000000000000000000000000
+2021-11-02 14:02:53.87 spid21s     UPDATE s SET s.Processed = 1 FROM dbo.Staging s WHERE s.BatchID = 4412     
+2021-11-02 14:02:53.87 spid21s         inputbuf
+2021-11-02 14:02:53.87 spid21s     BEGIN TRAN;   UPDATE s SET s.Processed = 1 FROM dbo.Staging s WHERE s.BatchID = 4412;
+2021-11-02 14:02:53.88 spid21s        process id=process1e8f40948 taskpriority=0 logused=5280 waitresource=PAGE: 5:1:23456 waittime=2205 ownerId=1904398 transactionname=INSERT lasttranstarted=2021-11-02T14:02:51.633 XDES=0x1e8f2d500 lockMode=IX schedulerid=4 kpid=4900 status=suspended spid=91 sbid=0 ecid=0 priority=0 trancount=2 lastbatchstarted=2021-11-02T14:02:51.633 lastbatchcompleted=2021-11-02T14:02:51.630 lastattention=1900-01-01T00:00:00.630 clientapp=.Net SqlClient Data Provider hostname=ETL01 hostpid=2288 loginname=CONTOSO\svc_etl isolationlevel=read committed (2) xactid=1904398 currentdb=5 currentdbname=Sales lockTimeout=4294967295 clientoption1=673185824 clientoption2=128056
+2021-11-02 14:02:53.88 spid21s         executionStack
+2021-11-02 14:02:53.88 spid21s          frame procname=Sales.dbo.usp_LoadStaging line=44 stmtstart=2210 stmtend=2480 sqlhandle=0x03000500a19be5602f7e5a0185ad0000010000000000000000000000000000000000000000000000
+2021-11-02 14:02:53.89 spid21s     INSERT INTO dbo.Staging (BatchID, Payload) SELECT @BatchID, Payload FROM dbo.Incoming     
+2021-11-02 14:02:53.89 spid21s         inputbuf
+2021-11-02 14:02:53.89 spid21s     Proc [Database Id = 5 Object Id = 1311343918]   
+2021-11-02 14:02:53.90 spid21s       resource-list
+2021-11-02 14:02:53.90 spid21s        pagelock fileid=1 pageid=23456 dbid=5 subresource=FULL objectname=Sales.dbo.Staging id=lock1e8e5c900 mode=U associatedObjectId=72057594058113024
+2021-11-02 14:02:53.90 spid21s         owner-list
+2021-11-02 14:02:53.91 spid21s          owner id=process1e8f40108 mode=U
+2021-11-02 14:02:53.91 spid21s         waiter-list
+2021-11-02 14:02:53.91 spid21s          waiter id=process1e8f40948 mode=IX requestType=wait
+2021-11-02 14:02:53.92 spid21s        ridlock fileid=1 pageid=23456 dbid=5 objectname=Sales.dbo.Staging id=lock1e8e5ca00 mode=X associatedObjectId=72057594058113024
+2021-11-02 14:02:53.92 spid21s         owner-list
+2021-11-02 14:02:53.92 spid21s          owner id=process1e8f40948 mode=X
+2021-11-02 14:02:53.93 spid21s         waiter-list
+2021-11-02 14:02:53.93 spid21s          waiter id=process1e8f40108 mode=U requestType=wait

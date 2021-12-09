@@ -7,6 +7,7 @@ returns a Finding or None. The first rule that returns a Finding wins.
 """
 import re
 
+from . import deadlock as deadlock_graph
 from .model import Finding
 
 RULES = []
@@ -31,6 +32,7 @@ LABELS = {
     "shutdown": "Shutdown",
     "cycled": "Error log cycled",
     "recovery": "Database recovery",
+    "1222": "Deadlocks (1222)",
 }
 
 ERROR_HEADER_RE = re.compile(r"^Error: (\d+), Severity: (\d+), State: (\d+)\.")
@@ -71,13 +73,22 @@ def classify(entries):
     """Run every rule over the entries and return the findings in log order."""
     ctx = Context()
     findings = []
-    for entry in entries:
+    i = 0
+    while i < len(entries):
+        entry = entries[i]
+        if entry.text.strip() == "deadlock-list":
+            # a 1222 graph is one logical block spread over many entries
+            end = deadlock_graph.collect_block(entries, i)
+            findings.append(summarise_deadlock(entry, deadlock_graph.parse_block(entries[i:end])))
+            i = end
+            continue
         ctx.observe(entry)
         for fn in RULES:
             finding = fn(entry, ctx)
             if finding is not None:
                 findings.append(finding)
                 break
+        i += 1
     return findings
 
 
@@ -561,3 +572,50 @@ def database_recovery(entry, ctx):
                "seconds_remaining": int(m.group("secs")) if m.group("secs") else None}
     return Finding(entry, "lifecycle", "recovery", "info",
                    "Recovery of %s at %d%%" % (details["database"], details["percent"]), details)
+
+
+# ---------------------------------------------------------------------------
+# 1222: deadlock graph
+# ---------------------------------------------------------------------------
+
+def summarise_deadlock(entry, dl):
+    victims = [dl.process(v) for v in dl.victims]
+    victims = [v for v in victims if v is not None]
+    objects = []
+    for res in dl.resources:
+        if res.object_name and res.object_name not in objects:
+            objects.append(res.object_name)
+    kinds = sorted({res.kind for res in dl.resources})
+    details = {
+        "victims": [
+            {"spid": v.spid, "login": v.login, "app": v.app, "host": v.host,
+             "procedure": v.procedure, "statement": v.statement}
+            for v in victims
+        ],
+        "processes": [
+            {"spid": p.spid, "login": p.login, "app": p.app, "host": p.host, "database": p.database,
+             "procedure": p.procedure, "statement": p.statement, "wait_resource": p.wait_resource,
+             "isolation": p.isolation}
+            for p in dl.processes
+        ],
+        "objects": objects,
+        "lock_kinds": kinds,
+        "database": dl.processes[0].database if dl.processes else None,
+    }
+    advice = []
+    if any(k in ("pagelock", "ridlock") for k in kinds):
+        advice.append("Page or row-id locks point at heap or scan access: check for a missing index on %s."
+                      % ", ".join(objects))
+    if "keylock" in kinds and len(objects) > 1:
+        advice.append("The sessions take %s in opposite orders; make every code path touch them in the same order."
+                      % " and ".join(objects))
+    if all((p.isolation or "").startswith("read committed") for p in dl.processes) and dl.processes:
+        advice.append("Everything ran at READ COMMITTED; READ_COMMITTED_SNAPSHOT removes reader-writer deadlocks.")
+    if victims:
+        who = victims[0]
+        title = "Deadlock on %s: victim spid %s%s" % (
+            ", ".join(objects) or "unknown objects", who.spid,
+            " (%s)" % (who.procedure or who.app) if (who.procedure or who.app) else "")
+    else:
+        title = "Deadlock on %s" % (", ".join(objects) or "unknown objects")
+    return Finding(entry, "deadlock", "1222", "error", title, details, " ".join(advice))
