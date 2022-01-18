@@ -1,5 +1,6 @@
-"""Plain-text report."""
+"""Plain-text and JSON reports."""
 import collections
+import json
 
 from .classify import LABELS
 from .model import severity_rank
@@ -54,3 +55,34 @@ def render_text(entries, findings, files=()):
     if len(ranked) > ADVICE_LIMIT:
         lines.append("  ... and %d more" % (len(ranked) - ADVICE_LIMIT))
     return "\n".join(lines) + "\n"
+
+
+def _iso(ts):
+    return ts.strftime("%Y-%m-%dT%H:%M:%S.") + "%03d" % (ts.microsecond // 1000)
+
+
+def finding_to_dict(f):
+    return {
+        "timestamp": _iso(f.entry.timestamp),
+        "process": f.entry.process,
+        "source": f.entry.source,
+        "line": f.entry.lineno,
+        "severity": f.severity,
+        "category": f.category,
+        "code": f.code,
+        "title": f.title,
+        "details": f.details,
+        "advice": f.advice,
+    }
+
+
+def render_json(entries, findings, files=()):
+    first = min((e.timestamp for e in entries), default=None)
+    last = max((e.timestamp for e in entries), default=None)
+    doc = {
+        "files": list(files),
+        "entries": len(entries),
+        "period": {"first": _iso(first) if first else None, "last": _iso(last) if last else None},
+        "findings": [finding_to_dict(f) for f in findings],
+    }
+    return json.dumps(doc, indent=2) + "\n"
