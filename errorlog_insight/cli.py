@@ -33,3 +33,8 @@ def main(argv=None, out=None):
     render = render_json if args.json else render_text
     out.write(render(entries, findings, args.files))
     return 0
+
+
+def console_main():
+    """Entry point for the installed errorlog-insight script."""
+    sys.exit(main())

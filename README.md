@@ -9,6 +9,15 @@ logical entry can span several physical lines (the startup banner, stack dumps,
 and (as it grows) classifies the well-known messages, groups the unknown ones
 and points at the interesting parts.
 
+## Install
+
+```
+pip install .
+errorlog-insight ERRORLOG
+```
+
+There are no dependencies. Running from a checkout works too.
+
 ## Usage
 
 ```

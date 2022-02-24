@@ -1,5 +1,3 @@
-import sys
+from .cli import console_main
 
-from .cli import main
-
-sys.exit(main())
+console_main()

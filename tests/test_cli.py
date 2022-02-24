@@ -1,3 +1,4 @@
+import contextlib
 import io
 import json
 import unittest
@@ -68,6 +69,19 @@ class OptionTests(unittest.TestCase):
         _, text = run("io_stalls.log", extra=["--json", "--min-severity", "error"])
         severities = {f["severity"] for f in json.loads(text)["findings"]}
         self.assertEqual(severities, {"error"})
+
+
+class EntryPointTests(unittest.TestCase):
+    def test_console_script_target_exists(self):
+        from errorlog_insight import cli
+        self.assertTrue(callable(cli.console_main))
+
+    def test_version_flag(self):
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out), self.assertRaises(SystemExit) as ctx:
+            main(["--version"])
+        self.assertEqual(ctx.exception.code, 0)
+        self.assertIn("errorlog-insight", out.getvalue())
 
 
 if __name__ == "__main__":
