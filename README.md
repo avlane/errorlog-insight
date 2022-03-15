@@ -31,7 +31,12 @@ to look at next. Files can be the real UTF-16 ERRORLOG or text saved from
 Options:
 
 * `--json` writes the same findings as JSON (one object per finding with its details).
+* `--top N` sets how many groups of unrecognised messages are listed (default 10).
 * `--min-severity {info,warning,error,critical}` hides the less interesting findings.
+
+Messages no rule recognises are grouped by template: numbers, addresses, GUIDs,
+paths and quoted names are masked, so "Starting up database 'A'." and
+"Starting up database 'B'." are one group with a count.
 
 Recognised so far: failed logins (18456, with the state decoded into a cause)
 and slow I/O warnings (833, with file, database and duration).

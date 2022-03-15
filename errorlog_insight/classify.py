@@ -79,7 +79,9 @@ def classify(entries):
         if entry.text.strip() == "deadlock-list":
             # a 1222 graph is one logical block spread over many entries
             end = deadlock_graph.collect_block(entries, i)
-            findings.append(summarise_deadlock(entry, deadlock_graph.parse_block(entries[i:end])))
+            finding = summarise_deadlock(entry, deadlock_graph.parse_block(entries[i:end]))
+            finding.covered = list(entries[i:end])
+            findings.append(finding)
             i = end
             continue
         ctx.observe(entry)
@@ -90,6 +92,26 @@ def classify(entries):
                 break
         i += 1
     return findings
+
+
+def unclassified(entries, findings):
+    """Entries no rule accounted for.
+
+    The separate 'Error: N, Severity: S, State: X.' header is not interesting
+    on its own when the entry after it was classified.
+    """
+    covered = set()
+    for f in findings:
+        covered.update(id(e) for e in f.entries)
+    out = []
+    for i, entry in enumerate(entries):
+        if id(entry) in covered:
+            continue
+        nxt = entries[i + 1] if i + 1 < len(entries) else None
+        if ERROR_HEADER_RE.match(entry.first_line) and nxt is not None and id(nxt) in covered:
+            continue
+        out.append(entry)
+    return out
 
 
 # ---------------------------------------------------------------------------

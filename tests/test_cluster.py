@@ -1,0 +1,66 @@
+import unittest
+from datetime import datetime
+
+from errorlog_insight.classify import classify, unclassified
+from errorlog_insight.cluster import cluster_entries, mask
+from errorlog_insight.model import Entry
+from errorlog_insight.reader import parse_entries, read_entries
+from tests.helpers import fixture
+
+
+def entry(text, minute=0, process="spid10s"):
+    return Entry(datetime(2022, 1, 1, 12, minute, 0), process, text)
+
+
+class MaskTests(unittest.TestCase):
+    def test_numbers_and_quotes(self):
+        self.assertEqual(mask("Starting up database 'Sales'."), "Starting up database '<STR>'.")
+        self.assertEqual(mask("Server process ID is 4184."), "Server process ID is <NUM>.")
+
+    def test_addresses_guids_and_hex(self):
+        text = "Connection from 10.20.4.77:49152 handle 0x00000A84 id 6f9619ff-8b86-d011-b42d-00c04fc964ff"
+        self.assertEqual(mask(text), "Connection from <IP> handle <HEX> id <GUID>")
+
+    def test_paths(self):
+        self.assertEqual(mask("Opened C:\\Data\\x.mdf ok"), "Opened <PATH> ok")
+        self.assertEqual(mask("Opened \\\\FILESRV01\\Share\\x.bak ok"), "Opened <PATH> ok")
+
+    def test_only_first_line_is_used(self):
+        self.assertEqual(mask("FlushCache: cleaned up 5 bufs\n\t\t\taverage throughput: 1 MB/sec"),
+                         "FlushCache: cleaned up <NUM> bufs")
+
+
+class ClusterTests(unittest.TestCase):
+    def test_same_template_one_cluster(self):
+        entries = [entry("Starting up database 'A'.", 1), entry("Starting up database 'B'.", 5),
+                   entry("Something else 7", 2)]
+        clusters = cluster_entries(entries)
+        self.assertEqual(len(clusters), 2)
+        self.assertEqual(clusters[0].template, "Starting up database '<STR>'.")
+        self.assertEqual(clusters[0].count, 2)
+        self.assertEqual(clusters[0].first_seen.minute, 1)
+        self.assertEqual(clusters[0].last_seen.minute, 5)
+
+    def test_unrecognised_entries_skip_classified_ones_and_headers(self):
+        entries = read_entries(fixture("login_failures.log")) + read_entries(fixture("noise.log"))
+        findings = classify(entries)
+        unknown = unclassified(entries, findings)
+        self.assertEqual(len(unknown), 10)
+        self.assertTrue(all(e.process != "Logon" for e in unknown))
+
+    def test_deadlock_block_is_fully_covered(self):
+        entries = read_entries(fixture("deadlock_1222.log"))
+        unknown = unclassified(entries, classify(entries))
+        self.assertEqual(len(unknown), 2)
+
+    def test_noise_templates(self):
+        clusters = cluster_entries(read_entries(fixture("noise.log")))
+        templates = {c.template for c in clusters}
+        self.assertIn("Configuration option '<STR>' changed from <NUM> to <NUM>. Run the RECONFIGURE statement to install.",
+                      templates)
+        counts = {c.template: c.count for c in clusters}
+        self.assertEqual(max(counts.values()), 2)
+
+
+if __name__ == "__main__":
+    unittest.main()

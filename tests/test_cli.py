@@ -36,6 +36,15 @@ class CliTests(unittest.TestCase):
         _, text = run("noise.log")
         self.assertIn("Nothing recognised.", text)
 
+    def test_unrecognised_section(self):
+        _, text = run("noise.log")
+        self.assertIn("Unrecognised messages (10 entries, 8 templates)", text)
+        self.assertIn("x2    Configuration option '<STR>' changed from <NUM> to <NUM>.", text)
+
+    def test_top_limits_templates(self):
+        _, text = run("noise.log", extra=["--top", "3"])
+        self.assertIn("... and 5 more templates", text)
+
     def test_period_line(self):
         _, text = run("login_failures.log")
         self.assertIn("2021-03-02 07:55:10 .. 2021-03-02 15:18:33", text)
@@ -58,6 +67,8 @@ class OptionTests(unittest.TestCase):
         _, text = run("noise.log", extra=["--json"])
         doc = json.loads(text)
         self.assertEqual(doc["findings"], [])
+        self.assertEqual(doc["unrecognised"][0]["count"], 2)
+        self.assertEqual(len(doc["unrecognised"]), 8)
 
     def test_min_severity_hides_info(self):
         _, text = run("startup_2019.log", extra=["--min-severity", "warning"])

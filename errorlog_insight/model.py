@@ -36,3 +36,8 @@ class Finding:
     title: str
     details: dict = field(default_factory=dict)
     advice: str = ""
+    covered: list = field(default_factory=list)  # every entry this finding accounts for
+
+    @property
+    def entries(self):
+        return self.covered or [self.entry]

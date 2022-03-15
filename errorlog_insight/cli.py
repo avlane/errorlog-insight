@@ -3,7 +3,7 @@ import argparse
 import sys
 
 from . import __version__
-from .classify import classify
+from .classify import classify, unclassified
 from .reader import read_entries
 from .model import SEVERITIES, severity_rank
 from .report import render_json, render_text
@@ -18,6 +18,8 @@ def build_parser():
     p.add_argument("--json", action="store_true", help="write JSON instead of text")
     p.add_argument("--min-severity", choices=SEVERITIES, default="info",
                    help="hide findings below this severity (default: info)")
+    p.add_argument("--top", type=int, default=10, metavar="N",
+                   help="show the N biggest groups of unrecognised messages (default: 10)")
     p.add_argument("--version", action="version", version="%(prog)s " + __version__)
     return p
 
@@ -29,9 +31,11 @@ def main(argv=None, out=None):
     for path in args.files:
         entries.extend(read_entries(path))
     floor = severity_rank(args.min_severity)
-    findings = [f for f in classify(entries) if severity_rank(f.severity) >= floor]
+    all_findings = classify(entries)
+    findings = [f for f in all_findings if severity_rank(f.severity) >= floor]
+    unknown = unclassified(entries, all_findings)
     render = render_json if args.json else render_text
-    out.write(render(entries, findings, args.files))
+    out.write(render(entries, findings, args.files, unknown=unknown, top=args.top))
     return 0
 
 

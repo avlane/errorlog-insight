@@ -3,6 +3,7 @@ import collections
 import json
 
 from .classify import LABELS
+from .cluster import cluster_entries
 from .model import severity_rank
 
 ADVICE_LIMIT = 10
@@ -28,7 +29,7 @@ def group_findings(findings):
     return sorted(groups.items(), key=lambda kv: (-worst(kv[1]), -len(kv[1]), kv[0]))
 
 
-def render_text(entries, findings, files=()):
+def render_text(entries, findings, files=(), unknown=(), top=10):
     lines = ["errorlog-insight report", ""]
     for name in files:
         lines.append("File:     %s" % name)
@@ -38,6 +39,7 @@ def render_text(entries, findings, files=()):
     lines.append("")
     if not findings:
         lines.append("Nothing recognised.")
+        lines.extend(_unrecognised_lines(unknown, top))
         return "\n".join(lines) + "\n"
 
     lines.append("Findings by type")
@@ -54,7 +56,20 @@ def render_text(entries, findings, files=()):
             lines.append("      -> %s" % f.advice)
     if len(ranked) > ADVICE_LIMIT:
         lines.append("  ... and %d more" % (len(ranked) - ADVICE_LIMIT))
+    lines.extend(_unrecognised_lines(unknown, top))
     return "\n".join(lines) + "\n"
+
+
+def _unrecognised_lines(unknown, top):
+    clusters = cluster_entries(unknown)
+    if not clusters:
+        return []
+    lines = ["", "Unrecognised messages (%d entries, %d templates)" % (len(unknown), len(clusters))]
+    for c in clusters[:top]:
+        lines.append("  x%-4d %s" % (c.count, c.template))
+    if len(clusters) > top:
+        lines.append("  ... and %d more templates" % (len(clusters) - top))
+    return lines
 
 
 def _iso(ts):
@@ -76,7 +91,18 @@ def finding_to_dict(f):
     }
 
 
-def render_json(entries, findings, files=()):
+def cluster_to_dict(c):
+    return {
+        "template": c.template,
+        "count": c.count,
+        "first_seen": _iso(c.first_seen),
+        "last_seen": _iso(c.last_seen),
+        "processes": sorted(c.processes),
+        "sample": c.sample.first_line,
+    }
+
+
+def render_json(entries, findings, files=(), unknown=(), top=10):
     first = min((e.timestamp for e in entries), default=None)
     last = max((e.timestamp for e in entries), default=None)
     doc = {
@@ -84,5 +110,6 @@ def render_json(entries, findings, files=()):
         "entries": len(entries),
         "period": {"first": _iso(first) if first else None, "last": _iso(last) if last else None},
         "findings": [finding_to_dict(f) for f in findings],
+        "unrecognised": [cluster_to_dict(c) for c in cluster_entries(unknown)[:top]],
     }
     return json.dumps(doc, indent=2) + "\n"
