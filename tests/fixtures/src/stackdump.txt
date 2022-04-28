@@ -1,0 +1,63 @@
+2022-03-08 11:42:17.14 spid61      Using 'dbghelp.dll' version '4.0.5'
+2022-03-08 11:42:17.14 spid61      ***Stack Dump being sent to C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\LOG\SQLDump0007.txt
+2022-03-08 11:42:17.14 spid61      SqlDumpExceptionHandler: Process 61 generated fatal exception c0000005 EXCEPTION_ACCESS_VIOLATION. SQL Server is terminating this process.
+2022-03-08 11:42:17.14 spid61      * *******************************************************************************
+2022-03-08 11:42:17.15 spid61      *
+2022-03-08 11:42:17.15 spid61      * BEGIN STACK DUMP:
+2022-03-08 11:42:17.15 spid61      *   03/08/22 11:42:17 spid 61
+2022-03-08 11:42:17.15 spid61      *
+2022-03-08 11:42:17.16 spid61      * Exception Code = c0000005 EXCEPTION_ACCESS_VIOLATION
+2022-03-08 11:42:17.16 spid61      * Exception Address = 00007FF9A9D7FA08 Module(sqllang+00000000001FFA08)
+2022-03-08 11:42:17.16 spid61      * Access Violation occurred reading address 0000000000000010
+2022-03-08 11:42:17.16 spid61      * Input Buffer 255 bytes -
+2022-03-08 11:42:17.17 spid61      *             SELECT o.OrderID, SUM(l.Quantity) FROM dbo.Orders o JOIN dbo.OrderLines l ON l.OrderID = o.OrderID
+2022-03-08 11:42:17.17 spid61      *             WHERE o.CreatedAt >= @from GROUP BY o.OrderID
+2022-03-08 11:42:17.17 spid61      *
+2022-03-08 11:42:17.17 spid61      * *******************************************************************************
+2022-03-08 11:42:17.18 spid61      *  -------------------------------------------------------------------------------
+2022-03-08 11:42:17.18 spid61      *  Short Stack Dump
+2022-03-08 11:42:17.18 spid61      00007FF9A9D7FA08 Module(sqllang+00000000001FFA08)
+2022-03-08 11:42:17.18 spid61      00007FF9A9D5C3F1 Module(sqllang+00000000001DC3F1)
+2022-03-08 11:42:17.19 spid61      00007FF9AA2B1E70 Module(sqlmin+0000000000071E70)
+2022-03-08 11:42:17.19 spid61      00007FFA3F1E7C24 Module(KERNEL32+0000000000017C24)
+2022-03-08 11:42:17.19 spid61      Stack Signature for the dump is 0x000000000000A2D1
+2022-03-08 11:42:17.19 spid61      External dump process return code 0x20000001.
+External dump process returned no errors.
+
+2022-03-08 11:42:18.62 spid61      Error: 17310, Severity: 20, State: 1.
+2022-03-08 11:42:18.62 spid61      A user request from the session with SPID 61 generated a fatal exception. SQL Server is terminating this session. Contact Product Support Services with the dump produced in the log directory.
+2022-03-08 13:00:05.20 spid53      Using 'xplog70.dll' version '2019.150.2000' to execute extended stored procedure 'xp_msver'. This is an informational message only; no user action is required.
+2022-03-08 15:20:11.04 spid74      Error: 17066, Severity: 16, State: 1.
+2022-03-08 15:20:11.04 spid74      SQL Server Assertion: File: <lockmgr.cpp>, line=1234 Failed Assertion = 'lockCount > 0'. This error may be timing-related. If the error persists after rerunning the statement, use DBCC CHECKDB to check the database for structural integrity, or restart the server to ensure in-memory data structures are not corrupted.
+2022-03-08 15:20:11.14 spid74      Using 'dbghelp.dll' version '4.0.5'
+2022-03-08 15:20:11.14 spid74      ***Stack Dump being sent to C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\LOG\SQLDump0008.txt
+2022-03-08 15:20:11.14 spid74      * *******************************************************************************
+2022-03-08 15:20:11.14 spid74      *
+2022-03-08 15:20:11.15 spid74      * BEGIN STACK DUMP:
+2022-03-08 15:20:11.15 spid74      *   03/08/22 15:20:11 spid 74
+2022-03-08 15:20:11.15 spid74      *
+2022-03-08 15:20:11.15 spid74      * Location:  lockmgr.cpp:1234
+2022-03-08 15:20:11.16 spid74      * Expression:  lockCount > 0
+2022-03-08 15:20:11.16 spid74      * SPID:  74
+2022-03-08 15:20:11.16 spid74      * Process ID:  4184
+2022-03-08 15:20:11.16 spid74      *
+2022-03-08 15:20:11.17 spid74      * *******************************************************************************
+2022-03-08 15:20:11.17 spid74      Stack Signature for the dump is 0x00000000000071B0
+2022-03-08 15:20:11.17 spid74      External dump process return code 0x20000001.
+External dump process returned no errors.
+
+2022-03-08 16:05:22.14 Server      Using 'dbghelp.dll' version '4.0.5'
+2022-03-08 16:05:22.14 Server      **Dump thread - spid = 0, EC = 0x000001F4A6D3D1A0
+2022-03-08 16:05:22.14 Server      ***Stack Dump being sent to C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\LOG\SQLDump0009.txt
+2022-03-08 16:05:22.14 Server      * *******************************************************************************
+2022-03-08 16:05:22.15 Server      *
+2022-03-08 16:05:22.15 Server      * BEGIN STACK DUMP:
+2022-03-08 16:05:22.15 Server      *   03/08/22 16:05:22 spid 6120
+2022-03-08 16:05:22.15 Server      *
+2022-03-08 16:05:22.16 Server      * Non-yielding Scheduler
+2022-03-08 16:05:22.16 Server      *
+2022-03-08 16:05:22.16 Server      * *******************************************************************************
+2022-03-08 16:05:22.16 Server      Stack Signature for the dump is 0x000000000000019A
+2022-03-08 16:05:22.17 Server      External dump process return code 0x20000001.
+External dump process returned no errors.
+
