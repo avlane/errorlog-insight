@@ -38,6 +38,9 @@ LABELS = {
     "stackdump": "Stack dumps",
     "17066": "Assertions (17065/17066)",
     "17310": "Session killed by exception",
+    "1480": "AG database role change (1480)",
+    "19406": "AG replica state change (19406)",
+    "ag-transition": "AG role transition",
 }
 
 ERROR_HEADER_RE = re.compile(r"^Error: (\d+), Severity: (\d+), State: (\d+)\.")
@@ -739,3 +742,71 @@ def fatal_session(entry, ctx):
     return Finding(entry, "dump", "17310", "critical",
                    "Session %s terminated by a fatal exception" % m.group("spid"), details,
                    "See the stack dump written just before this message.")
+
+
+# ---------------------------------------------------------------------------
+# Availability groups: roles and replica state
+# ---------------------------------------------------------------------------
+
+ROLE_CHANGE_RE = re.compile(
+    r'The (?P<kind>availability group|mirroring) database "(?P<db>[^"]+)" is changing roles from '
+    r'"(?P<old>\w+)" to "(?P<new>\w+)" because the mirroring session or availability group failed over '
+    r'due to (?P<reason>[^.]+?)\.'
+)
+REPLICA_STATE_RE = re.compile(
+    r"The state of the local availability replica in availability group '(?P<ag>[^']+)' has changed from "
+    r"'(?P<old>\w+)' to '(?P<new>\w+)'\.\s+The state changed because (?P<reason>.+?)\.\s+For more information"
+)
+TRANSITION_RE = re.compile(
+    r"Always ?On: The local replica of availability group '(?P<ag>[^']+)' is preparing to transition to the "
+    r"(?P<role>\w+) role"
+)
+
+# A replica that is not in one of these states is not serving its role.
+HEALTHY_REPLICA_STATES = ("PRIMARY_NORMAL", "SECONDARY_NORMAL")
+
+
+@rule
+def role_change(entry, ctx):
+    m = ROLE_CHANGE_RE.search(entry.text)
+    if not m:
+        return None
+    reason = m.group("reason")
+    old, new = m.group("old"), m.group("new")
+    planned = "manual" in reason or "role synchronization" in reason
+    details = {"database": m.group("db"), "old_role": old, "new_role": new, "reason": reason, "planned": planned}
+    severity = "info" if planned else "warning"
+    if new == "RESOLVING" and not planned:
+        advice = "An unplanned loss of the role: check the WSFC cluster log, quorum and the network between replicas."
+    else:
+        advice = ""
+    title = "%s: %s -> %s (%s)" % (details["database"], old, new, reason)
+    return Finding(entry, "ag", "1480", severity, title, details, advice)
+
+
+@rule
+def replica_state(entry, ctx):
+    m = REPLICA_STATE_RE.search(entry.text)
+    if not m:
+        return None
+    reason = m.group("reason")
+    new = m.group("new")
+    user = "user initiated" in reason
+    details = {"ag": m.group("ag"), "old_state": m.group("old"), "new_state": new,
+               "reason": reason, "user_initiated": user}
+    if new in HEALTHY_REPLICA_STATES or user:
+        severity = "info"
+    else:
+        severity = "warning"
+    title = "%s: replica %s -> %s" % (details["ag"], m.group("old"), new)
+    return Finding(entry, "ag", "19406", severity, title, details)
+
+
+@rule
+def ag_transition(entry, ctx):
+    m = TRANSITION_RE.search(entry.text)
+    if not m:
+        return None
+    details = {"ag": m.group("ag"), "role": m.group("role")}
+    return Finding(entry, "ag", "ag-transition", "info",
+                   "%s: preparing to become %s" % (details["ag"], details["role"]), details)
