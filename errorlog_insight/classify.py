@@ -41,6 +41,8 @@ LABELS = {
     "1480": "AG database role change (1480)",
     "19406": "AG replica state change (19406)",
     "ag-transition": "AG role transition",
+    "35264": "AG data movement suspended (35264)",
+    "35265": "AG data movement resumed (35265)",
 }
 
 ERROR_HEADER_RE = re.compile(r"^Error: (\d+), Severity: (\d+), State: (\d+)\.")
@@ -810,3 +812,52 @@ def ag_transition(entry, ctx):
     details = {"ag": m.group("ag"), "role": m.group("role")}
     return Finding(entry, "ag", "ag-transition", "info",
                    "%s: preparing to become %s" % (details["ag"], details["role"]), details)
+
+
+# ---------------------------------------------------------------------------
+# Availability groups: data movement suspended / resumed
+# ---------------------------------------------------------------------------
+
+SUSPENDED_RE = re.compile(
+    r"Always ?On Availability Groups data movement for database '(?P<db>[^']+)' has been suspended for the "
+    r'following reason: "(?P<who>\w+)" \(Source ID (?P<sid>\d+); Source string: \'(?P<src>\w+)\'\)'
+)
+RESUMED_RE = re.compile(r"Always ?On Availability Groups data movement for database '(?P<db>[^']+)' has been resumed")
+
+SUSPEND_ADVICE = {
+    "SUSPEND_FROM_USER": "Someone ran ALTER DATABASE ... SET HADR SUSPEND. Resume it when the maintenance is done.",
+    "SUSPEND_FROM_PARTNER": "The other replica suspended its side; look in its error log for the cause.",
+    "SUSPEND_FROM_REDO": ("The redo thread on this secondary failed. Look just before this entry for a disk, "
+                          "corruption (823/824) or log-full (9002) error on this replica."),
+    "SUSPEND_FROM_APPLY": "Applying log on this replica failed. Look just before this entry for the error.",
+    "SUSPEND_FROM_CAPTURE": "Log capture on the primary failed. Check the primary's log and disk.",
+    "SUSPEND_FROM_RESTART": "The database came up suspended after a restart. Check why recovery of the AG state failed.",
+    "SUSPEND_FROM_UNDO": "Undo after a failover failed on this replica; check the entries before this one.",
+    "SUSPEND_FROM_REVALIDATION": ("Revalidation after a role change found this replica ahead of the new primary: "
+                                  "the log diverged, and the database must be reseeded or restored."),
+    "SUSPEND_FROM_XRF_UPDATE": "Updating the cross-replica fork information failed; check the entries before this one.",
+}
+
+
+@rule
+def data_movement_suspended(entry, ctx):
+    m = SUSPENDED_RE.search(entry.text)
+    if not m:
+        return None
+    who = m.group("who")
+    source = m.group("src")
+    details = {"database": m.group("db"), "source": who, "source_id": int(m.group("sid")),
+               "reason": source, "by_user": who == "user"}
+    severity = "warning" if who == "user" else "error"
+    advice = SUSPEND_ADVICE.get(source, "Find the error that preceded the suspend, fix it, then resume the database.")
+    return Finding(entry, "ag", "35264", severity,
+                   "Data movement suspended for %s (%s)" % (details["database"], source), details, advice)
+
+
+@rule
+def data_movement_resumed(entry, ctx):
+    m = RESUMED_RE.search(entry.text)
+    if not m:
+        return None
+    return Finding(entry, "ag", "35265", "info", "Data movement resumed for %s" % m.group("db"),
+                   {"database": m.group("db")})
