@@ -52,5 +52,22 @@ class RoleTests(unittest.TestCase):
         self.assertFalse(f.details["user_initiated"])
 
 
+class FailedFailoverTests(unittest.TestCase):
+    def test_41142(self):
+        findings = findings_of("ag_failed_failover.log")
+        self.assertEqual([f.code for f in findings], ["ag-transition", "41142"])
+        f = findings[1]
+        self.assertEqual(f.severity, "error")
+        self.assertEqual(f.details["ag"], "AG_Sales")
+        self.assertEqual(f.details["error_state"], 1)
+        self.assertTrue(f.details["force_quorum_hint"])
+        self.assertIn("ALLOW_DATA_LOSS", f.advice)
+
+    def test_header_entry_is_not_left_over(self):
+        from errorlog_insight.classify import unclassified
+        entries = read_entries(fixture("ag_failed_failover.log"))
+        self.assertEqual(unclassified(entries, classify(entries)), [])
+
+
 if __name__ == "__main__":
     unittest.main()

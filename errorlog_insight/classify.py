@@ -43,6 +43,7 @@ LABELS = {
     "ag-transition": "AG role transition",
     "35264": "AG data movement suspended (35264)",
     "35265": "AG data movement resumed (35265)",
+    "41142": "AG cannot become primary (41142)",
 }
 
 ERROR_HEADER_RE = re.compile(r"^Error: (\d+), Severity: (\d+), State: (\d+)\.")
@@ -764,6 +765,11 @@ TRANSITION_RE = re.compile(
     r"(?P<role>\w+) role"
 )
 
+CANNOT_BE_PRIMARY_RE = re.compile(
+    r"The availability replica for availability group '(?P<ag>[^']+)' on this instance of SQL Server cannot "
+    r"become the primary replica\."
+)
+
 # A replica that is not in one of these states is not serving its role.
 HEALTHY_REPLICA_STATES = ("PRIMARY_NORMAL", "SECONDARY_NORMAL")
 
@@ -861,3 +867,17 @@ def data_movement_resumed(entry, ctx):
         return None
     return Finding(entry, "ag", "35265", "info", "Data movement resumed for %s" % m.group("db"),
                    {"database": m.group("db")})
+
+
+@rule
+def cannot_become_primary(entry, ctx):
+    m = CANNOT_BE_PRIMARY_RE.search(entry.text)
+    if not m:
+        return None
+    details = {"ag": m.group("ag"), "force_quorum_hint": "Force Quorum" in entry.text}
+    details.update(_header_numbers(ctx, entry, 41142))
+    advice = ("Check sys.dm_hadr_database_replica_states for databases that are not SYNCHRONIZED. If the old "
+              "primary is gone, FAILOVER with ALLOW_DATA_LOSS brings this replica online; know how much "
+              "data the asynchronous replica was behind before you do it.")
+    return Finding(entry, "ag", "41142", "error",
+                   "%s: this replica cannot become primary" % details["ag"], details, advice)

@@ -38,8 +38,19 @@ Messages no rule recognises are grouped by template: numbers, addresses, GUIDs,
 paths and quoted names are masked, so "Starting up database 'A'." and
 "Starting up database 'B'." are one group with a count.
 
-Recognised so far: failed logins (18456, with the state decoded into a cause)
-and slow I/O warnings (833, with file, database and duration).
+Recognised so far:
+
+| Area | Messages |
+|---|---|
+| Logins | 18456 with the state decoded into a cause |
+| I/O | 833 slow I/O (file, database, duration) |
+| Schedulers | 17883 non-yielding, 17884 worker starvation |
+| Memory and log | 701, 802, 9002 (with the log reuse wait) |
+| Backups | 3041, 18204, 3201, 4208 and the success messages |
+| Deadlocks | trace flag 1222 graphs: victim, objects, who waits for whom |
+| Crashes | stack dumps, assertions (17065/17066), 17310 |
+| Availability groups | 1480 role changes, 19406 replica state, 35264/35265 data movement, 41142 |
+| Lifecycle | startup banner, ready, shutdown, recovery progress |
 
 ## Tests
 
