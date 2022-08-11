@@ -45,6 +45,17 @@ class CliTests(unittest.TestCase):
         _, text = run("noise.log", extra=["--top", "3"])
         self.assertIn("... and 5 more templates", text)
 
+    def test_burst_section(self):
+        _, text = run("login_failures.log")
+        self.assertIn("Bursts (well above the recent rate)", text)
+        self.assertIn("18456", text.split("Bursts")[1])
+
+    def test_burst_json_and_threshold(self):
+        _, text = run("login_failures.log", extra=["--json"])
+        self.assertEqual(json.loads(text)["bursts"][0]["count"], 6)
+        _, text = run("login_failures.log", extra=["--json", "--burst-min", "7"])
+        self.assertEqual(json.loads(text)["bursts"], [])
+
     def test_period_line(self):
         _, text = run("login_failures.log")
         self.assertIn("2021-03-02 07:55:10 .. 2021-03-02 15:18:33", text)

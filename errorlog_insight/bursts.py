@@ -1,0 +1,91 @@
+"""Burst detection against a rolling baseline.
+
+Events are counted in fixed-width buckets. A bucket is a burst when it holds
+at least `min_count` events and at least `factor` times the average of the
+`window` buckets before it. Neighbouring burst buckets are merged.
+
+This is deliberately plain arithmetic: no seasonality, no model, nothing that
+cannot be checked with a calculator.
+"""
+from collections import defaultdict
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+
+EPOCH = datetime(2000, 1, 1)
+
+
+@dataclass
+class BurstConfig:
+    bucket_seconds: int = 60
+    window: int = 30       # buckets of history that make the baseline
+    factor: float = 3.0
+    min_count: int = 5
+
+
+@dataclass
+class Burst:
+    key: str
+    start: datetime
+    end: datetime
+    count: int
+    peak: int
+    baseline: float
+
+
+def _bucket_index(ts, width):
+    return int((ts - EPOCH).total_seconds() // width)
+
+
+def detect_bursts(timestamps, config=None, key=""):
+    """Return the Burst objects found in a list of datetimes."""
+    config = config or BurstConfig()
+    counts = defaultdict(int)
+    for ts in timestamps:
+        counts[_bucket_index(ts, config.bucket_seconds)] += 1
+    occupied = sorted(counts)
+    bursts = []
+    current = None
+    start_of_history = 0  # first position in `occupied` still inside the window
+    for pos, idx in enumerate(occupied):
+        while occupied[start_of_history] < idx - config.window:
+            start_of_history += 1
+        history = sum(counts[j] for j in occupied[start_of_history:pos])
+        baseline = history / float(config.window)
+        count = counts[idx]
+        is_burst = count >= config.min_count and count >= config.factor * baseline
+        if is_burst:
+            if current is not None and idx - current["last"] <= 1:
+                current["last"] = idx
+                current["count"] += count
+                current["peak"] = max(current["peak"], count)
+                current["baseline"] = max(current["baseline"], baseline)
+            else:
+                if current is not None:
+                    bursts.append(_finish(current, config, key))
+                current = {"first": idx, "last": idx, "count": count, "peak": count, "baseline": baseline}
+        elif current is not None:
+            bursts.append(_finish(current, config, key))
+            current = None
+    if current is not None:
+        bursts.append(_finish(current, config, key))
+    return bursts
+
+
+def _finish(c, config, key):
+    start = EPOCH + timedelta(seconds=c["first"] * config.bucket_seconds)
+    end = EPOCH + timedelta(seconds=(c["last"] + 1) * config.bucket_seconds)
+    return Burst(key, start, end, c["count"], c["peak"], round(c["baseline"], 3))
+
+
+def find_bursts(findings, config=None, min_severity_rank=1):
+    """Bursts per finding code, ignoring findings below the given severity rank."""
+    from .model import severity_rank
+
+    by_code = defaultdict(list)
+    for f in findings:
+        if severity_rank(f.severity) >= min_severity_rank:
+            by_code[f.code].append(f.entry.timestamp)
+    bursts = []
+    for code, stamps in by_code.items():
+        bursts.extend(detect_bursts(stamps, config, key=code))
+    return sorted(bursts, key=lambda b: (b.start, b.key))

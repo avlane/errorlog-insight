@@ -29,7 +29,7 @@ def group_findings(findings):
     return sorted(groups.items(), key=lambda kv: (-worst(kv[1]), -len(kv[1]), kv[0]))
 
 
-def render_text(entries, findings, files=(), unknown=(), top=10):
+def render_text(entries, findings, files=(), unknown=(), top=10, bursts=()):
     lines = ["errorlog-insight report", ""]
     for name in files:
         lines.append("File:     %s" % name)
@@ -56,8 +56,20 @@ def render_text(entries, findings, files=(), unknown=(), top=10):
             lines.append("      -> %s" % f.advice)
     if len(ranked) > ADVICE_LIMIT:
         lines.append("  ... and %d more" % (len(ranked) - ADVICE_LIMIT))
+    lines.extend(_burst_lines(bursts))
     lines.extend(_unrecognised_lines(unknown, top))
     return "\n".join(lines) + "\n"
+
+
+def _burst_lines(bursts):
+    if not bursts:
+        return []
+    lines = ["", "Bursts (well above the recent rate)"]
+    for b in bursts:
+        lines.append("  %-7s %-24s x%-4d %s .. %s  (baseline %.2f per bucket)" % (
+            b.key, LABELS.get(b.key, b.key), b.count, b.start.strftime("%Y-%m-%d %H:%M"),
+            b.end.strftime("%H:%M"), b.baseline))
+    return lines
 
 
 def _unrecognised_lines(unknown, top):
@@ -102,7 +114,12 @@ def cluster_to_dict(c):
     }
 
 
-def render_json(entries, findings, files=(), unknown=(), top=10):
+def burst_to_dict(b):
+    return {"key": b.key, "start": _iso(b.start), "end": _iso(b.end), "count": b.count,
+            "peak": b.peak, "baseline": b.baseline}
+
+
+def render_json(entries, findings, files=(), unknown=(), top=10, bursts=()):
     first = min((e.timestamp for e in entries), default=None)
     last = max((e.timestamp for e in entries), default=None)
     doc = {
@@ -110,6 +127,7 @@ def render_json(entries, findings, files=(), unknown=(), top=10):
         "entries": len(entries),
         "period": {"first": _iso(first) if first else None, "last": _iso(last) if last else None},
         "findings": [finding_to_dict(f) for f in findings],
+        "bursts": [burst_to_dict(b) for b in bursts],
         "unrecognised": [cluster_to_dict(c) for c in cluster_entries(unknown)[:top]],
     }
     return json.dumps(doc, indent=2) + "\n"
