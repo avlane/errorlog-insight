@@ -12,6 +12,7 @@ class Entry:
     text: str
     source: str = ""
     lineno: int = 0
+    replica: str = ""
 
     @property
     def first_line(self):

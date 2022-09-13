@@ -57,7 +57,7 @@ def _timestamp(m):
     return datetime(year, month, day, hour, minute, second, micro)
 
 
-def parse_entries(text, source=""):
+def parse_entries(text, source="", replica=""):
     """Split decoded log text into Entry objects."""
     entries = []
     current = None
@@ -65,7 +65,7 @@ def parse_entries(text, source=""):
         line = line.replace("\x00", "")
         m = LINE_RE.match(line)
         if m:
-            current = Entry(_timestamp(m), m.group(8), m.group(9) or "", source, lineno)
+            current = Entry(_timestamp(m), m.group(8), m.group(9) or "", source, lineno, replica)
             entries.append(current)
         elif current is not None:
             current.text += "\n" + line
@@ -79,7 +79,7 @@ def looks_like_readerrorlog(text):
     return text.lstrip().startswith("LogDate")
 
 
-def parse_readerrorlog(text, source=""):
+def parse_readerrorlog(text, source="", replica=""):
     """Parse tab-separated sp_readerrorlog output saved from SSMS.
 
     Fields that contain line breaks are quoted by SSMS, so the csv module does
@@ -97,15 +97,19 @@ def parse_readerrorlog(text, source=""):
         when = datetime.strptime(stamp[:19], "%Y-%m-%d %H:%M:%S")
         if len(stamp) > 20:
             when = when.replace(microsecond=int(stamp[20:].ljust(6, "0")[:6]))
-        entries.append(Entry(when, row[1].strip(), row[2].rstrip(), source, reader.line_num))
+        entries.append(Entry(when, row[1].strip(), row[2].rstrip(), source, reader.line_num, replica))
     return entries
 
 
-def read_entries(path):
-    """Read an ERRORLOG file (or saved sp_readerrorlog output) from disk."""
+def read_entries(path, replica=""):
+    """Read an ERRORLOG file (or saved sp_readerrorlog output) from disk.
+
+    `replica` is a free label (server name) stored on every entry, so entries
+    from several servers can be told apart after they are merged.
+    """
     with open(path, "rb") as f:
         data = f.read()
     text = decode(data)
     if looks_like_readerrorlog(text):
-        return parse_readerrorlog(text, source=str(path))
-    return parse_entries(text, source=str(path))
+        return parse_readerrorlog(text, source=str(path), replica=replica)
+    return parse_entries(text, source=str(path), replica=replica)

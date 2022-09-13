@@ -5,6 +5,7 @@ import json
 from .classify import LABELS
 from .cluster import cluster_entries
 from .model import severity_rank
+from .timeline import timeline_lines
 
 ADVICE_LIMIT = 10
 
@@ -29,7 +30,7 @@ def group_findings(findings):
     return sorted(groups.items(), key=lambda kv: (-worst(kv[1]), -len(kv[1]), kv[0]))
 
 
-def render_text(entries, findings, files=(), unknown=(), top=10, bursts=()):
+def render_text(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False):
     lines = ["errorlog-insight report", ""]
     for name in files:
         lines.append("File:     %s" % name)
@@ -57,6 +58,8 @@ def render_text(entries, findings, files=(), unknown=(), top=10, bursts=()):
     if len(ranked) > ADVICE_LIMIT:
         lines.append("  ... and %d more" % (len(ranked) - ADVICE_LIMIT))
     lines.extend(_burst_lines(bursts))
+    if timeline:
+        lines.extend(["", "Timeline"] + ["  " + t for t in timeline_lines(findings)])
     lines.extend(_unrecognised_lines(unknown, top))
     return "\n".join(lines) + "\n"
 
@@ -93,6 +96,7 @@ def finding_to_dict(f):
         "timestamp": _iso(f.entry.timestamp),
         "process": f.entry.process,
         "source": f.entry.source,
+        "replica": f.entry.replica,
         "line": f.entry.lineno,
         "severity": f.severity,
         "category": f.category,
@@ -119,7 +123,8 @@ def burst_to_dict(b):
             "peak": b.peak, "baseline": b.baseline}
 
 
-def render_json(entries, findings, files=(), unknown=(), top=10, bursts=()):
+def render_json(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False):
+    # the findings list is already in time order, so the JSON needs no separate timeline
     first = min((e.timestamp for e in entries), default=None)
     last = max((e.timestamp for e in entries), default=None)
     doc = {

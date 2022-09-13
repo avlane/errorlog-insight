@@ -34,6 +34,8 @@ Options:
 * `--top N` sets how many groups of unrecognised messages are listed (default 10).
 * `--burst-min N` and `--burst-factor X` tune burst detection: a minute with at least N
   events of one kind, and X times the average of the previous 30 minutes, is reported as a burst.
+* `--timeline` lists the findings of all given files (for example the logs of both AG
+  replicas) as one time-ordered list with the file name as the replica column.
 * `--min-severity {info,warning,error,critical}` hides the less interesting findings.
 
 Messages no rule recognises are grouped by template: numbers, addresses, GUIDs,
