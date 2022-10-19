@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime
 
-from errorlog_insight.reader import decode, parse_entries, parse_readerrorlog, read_entries
+from errorlog_insight.reader import decode, parse_entries, parse_grid_date, parse_readerrorlog, read_entries
 from tests.helpers import fixture
 
 
@@ -82,6 +82,44 @@ class ReaderrorlogTests(unittest.TestCase):
     def test_rejects_missing_header(self):
         with self.assertRaises(ValueError):
             parse_readerrorlog("Date\tProc\tText\n")
+
+
+class LogViewerExportTests(unittest.TestCase):
+    def test_comma_separated_newest_first_export(self):
+        entries = read_entries(fixture("log_viewer_export.csv"))
+        self.assertEqual(len(entries), 5)
+        stamps = [e.timestamp for e in entries]
+        self.assertEqual(stamps, sorted(stamps))
+        self.assertEqual(entries[0].timestamp, datetime(2021, 3, 1, 23, 59, 58))
+        self.assertEqual(entries[-1].process, "Backup")
+
+    def test_same_second_entries_keep_log_order(self):
+        entries = read_entries(fixture("log_viewer_export.csv"))
+        self.assertTrue(entries[1].text.startswith("Error: 18456"))
+        self.assertTrue(entries[2].text.startswith("Login failed"))
+
+    def test_multiline_message(self):
+        banner = read_entries(fixture("log_viewer_export.csv"))[3]
+        self.assertEqual(len(banner.text.splitlines()), 4)
+
+    def test_am_pm_dates(self):
+        self.assertEqual(parse_grid_date("3/2/2021 8:20:12 AM"), datetime(2021, 3, 2, 8, 20, 12))
+        self.assertEqual(parse_grid_date("3/2/2021 8:20:12 PM"), datetime(2021, 3, 2, 20, 20, 12))
+        self.assertEqual(parse_grid_date("03/02/2021 20:20:12"), datetime(2021, 3, 2, 20, 20, 12))
+
+    def test_iso_dates_with_fraction(self):
+        self.assertEqual(parse_grid_date("2021-03-02 08:14:22.350"), datetime(2021, 3, 2, 8, 14, 22, 350000))
+        self.assertEqual(parse_grid_date("2021-03-02 08:14:22"), datetime(2021, 3, 2, 8, 14, 22))
+
+    def test_unknown_date_format(self):
+        with self.assertRaises(ValueError):
+            parse_grid_date("2. 3. 2021 8:14")
+
+    def test_classification_works_on_exports(self):
+        from errorlog_insight.classify import classify
+        findings = classify(read_entries(fixture("log_viewer_export.csv")))
+        self.assertEqual([f.code for f in findings], ["18456", "startup", "18264"])
+        self.assertEqual(findings[0].details["state"], 8)
 
 
 if __name__ == "__main__":

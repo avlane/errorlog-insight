@@ -25,8 +25,9 @@ python3 -m errorlog_insight ERRORLOG ERRORLOG.1
 ```
 
 prints the findings grouped by message number, worst first, with a hint on what
-to look at next. Files can be the real UTF-16 ERRORLOG or text saved from
-`sp_readerrorlog`.
+to look at next. Files can be the real UTF-16 ERRORLOG, a grid saved from
+`sp_readerrorlog` (tab separated), or an export from the SSMS Log File Viewer
+(comma separated, newest first, dates like `3/2/2021 8:14:22 AM`).
 
 Options:
 

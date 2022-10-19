@@ -74,30 +74,66 @@ def parse_entries(text, source="", replica=""):
     return entries
 
 
+# Column names of the two saved-grid layouts: sp_readerrorlog and the SSMS Log File Viewer.
+GRID_HEADERS = (("LogDate", "ProcessInfo", "Text"), ("Date", "Source", "Message"))
+
+# Dates in saved grids follow the client's locale. Only layouts that cannot be
+# confused with each other are tried (month first, as on US English clients).
+GRID_DATE_FORMATS = (
+    "%Y-%m-%d %H:%M:%S",
+    "%m/%d/%Y %I:%M:%S %p",
+    "%m/%d/%Y %H:%M:%S",
+)
+
+
+def _grid_delimiter(first_line):
+    return TAB if TAB in first_line else ","
+
+
 def looks_like_readerrorlog(text):
-    """True for output saved from sp_readerrorlog (LogDate, ProcessInfo, Text)."""
-    return text.lstrip().startswith("LogDate")
+    """True for a grid saved from sp_readerrorlog or from the Log File Viewer."""
+    first = text.lstrip().split("\n", 1)[0].strip()
+    names = tuple(n.strip().strip('"') for n in first.split(_grid_delimiter(first)))
+    return names[:3] in GRID_HEADERS
+
+
+def parse_grid_date(stamp):
+    """Parse the date column of a saved grid, with or without fractional seconds."""
+    stamp = stamp.strip()
+    head, _, fraction = stamp.partition(".")
+    if fraction and not fraction.isdigit():
+        head, fraction = stamp, ""
+    for fmt in GRID_DATE_FORMATS:
+        try:
+            when = datetime.strptime(head, fmt)
+        except ValueError:
+            continue
+        if fraction:
+            when = when.replace(microsecond=int(fraction.ljust(6, "0")[:6]))
+        return when
+    raise ValueError("unrecognised date in saved grid: %r" % stamp)
 
 
 def parse_readerrorlog(text, source="", replica=""):
-    """Parse tab-separated sp_readerrorlog output saved from SSMS.
+    """Parse a saved grid: tab separated (sp_readerrorlog) or comma separated (Log File Viewer).
 
     Fields that contain line breaks are quoted by SSMS, so the csv module does
-    the heavy lifting. The Text column keeps its embedded newlines.
+    the heavy lifting. The Text column keeps its embedded newlines. The Log File
+    Viewer lists the newest entry first, so such a grid is reversed into time order.
     """
     entries = []
-    reader = csv.reader(io.StringIO(text, newline=""), delimiter=TAB)
+    text = text.lstrip()
+    delimiter = _grid_delimiter(text.split("\n", 1)[0])
+    reader = csv.reader(io.StringIO(text, newline=""), delimiter=delimiter)
     header = next(reader, None)
-    if not header or header[0].strip() != "LogDate":
-        raise ValueError("not sp_readerrorlog output: missing LogDate header")
+    if not header or tuple(h.strip() for h in header[:3]) not in GRID_HEADERS:
+        raise ValueError("not a saved error log grid: missing LogDate/Date header")
     for row in reader:
         if len(row) < 3 or not row[0].strip():
             continue
-        stamp = row[0].strip()
-        when = datetime.strptime(stamp[:19], "%Y-%m-%d %H:%M:%S")
-        if len(stamp) > 20:
-            when = when.replace(microsecond=int(stamp[20:].ljust(6, "0")[:6]))
-        entries.append(Entry(when, row[1].strip(), row[2].rstrip(), source, reader.line_num, replica))
+        entries.append(Entry(parse_grid_date(row[0]), row[1].strip(), row[2].rstrip(), source, reader.line_num, replica))
+    if len(entries) > 1 and entries[0].timestamp > entries[-1].timestamp:
+        entries.reverse()  # newest first: reversing (not sorting) keeps same-second entries in log order
     return entries
 
 
