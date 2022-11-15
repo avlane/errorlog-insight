@@ -1,0 +1,2 @@
+# UTF-16 fixtures must never get line-ending conversion
+*.log binary
