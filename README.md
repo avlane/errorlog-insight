@@ -57,6 +57,9 @@ Recognised so far:
 | Availability groups | 1480 role changes, 19406 replica state, 35264/35265 data movement, 41142 |
 | Lifecycle | startup banner, ready, shutdown, recovery progress |
 
+See [docs/classifiers.md](docs/classifiers.md) for what each rule extracts and how
+it picks a severity.
+
 ## Tests
 
 ```
