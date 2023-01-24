@@ -1,7 +1,8 @@
 import collections
 import unittest
 
-from errorlog_insight.classify import classify, decode_login_state, guess_state_from_reason
+from errorlog_insight.classify import classify
+from errorlog_insight.rules.login import decode_login_state, guess_state_from_reason
 from errorlog_insight.reader import parse_entries, read_entries
 from tests.helpers import fixture
 

@@ -1,6 +1,7 @@
 import unittest
 
-from errorlog_insight.classify import classify, volume_of
+from errorlog_insight.classify import classify
+from errorlog_insight.rules.io import volume_of
 from errorlog_insight.reader import read_entries
 from tests.helpers import fixture
 
