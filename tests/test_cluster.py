@@ -2,7 +2,7 @@ import unittest
 from datetime import datetime
 
 from errorlog_insight.classify import classify, unclassified
-from errorlog_insight.cluster import cluster_entries, mask
+from errorlog_insight.cluster import cluster_entries, mask, similarity
 from errorlog_insight.model import Entry
 from errorlog_insight.reader import parse_entries, read_entries
 from tests.helpers import fixture
@@ -60,6 +60,48 @@ class ClusterTests(unittest.TestCase):
                       templates)
         counts = {c.template: c.count for c in clusters}
         self.assertEqual(max(counts.values()), 2)
+
+
+class SimilarityTests(unittest.TestCase):
+    OPTION = "Setting database option %s to %s for database '%s'."
+
+    def test_similar_templates_merge(self):
+        entries = [
+            entry(self.OPTION % ("RECOVERY", "SIMPLE", "Staging"), 1),
+            entry(self.OPTION % ("READ_COMMITTED_SNAPSHOT", "ON", "Reporting"), 2),
+            entry(self.OPTION % ("RECOVERY", "FULL", "Sales"), 3),
+        ]
+        (cluster,) = cluster_entries(entries)
+        self.assertEqual(cluster.template, "Setting database option <*> to <*> for database '<STR>'.")
+        self.assertEqual(cluster.count, 3)
+        self.assertEqual(cluster.variants, 3)
+        self.assertEqual(cluster.first_seen.minute, 1)
+        self.assertEqual(cluster.last_seen.minute, 3)
+
+    def test_different_lengths_do_not_merge(self):
+        entries = [entry("Backup of the log started now"), entry("Backup of the log started now again")]
+        self.assertEqual(len(cluster_entries(entries)), 2)
+
+    def test_different_first_word_does_not_merge(self):
+        entries = [entry("Starting the replica manager for group one"), entry("Stopping the replica manager for group one")]
+        self.assertEqual(len(cluster_entries(entries)), 2)
+
+    def test_short_messages_only_merge_when_identical(self):
+        entries = [entry("Resumed database Sales"), entry("Resumed database Staging")]
+        self.assertEqual(len(cluster_entries(entries)), 2)
+
+    def test_threshold_parameter(self):
+        entries = [entry("Moved file alpha to disk one for user bob"), entry("Moved file gamma to disk two for user sue")]
+        self.assertEqual(len(cluster_entries(entries, threshold=0.7)), 2)
+        self.assertEqual(len(cluster_entries(entries, threshold=0.5)), 1)
+
+    def test_versions_are_masked(self):
+        self.assertEqual(mask("CLR version v4.0.30319 loaded"), "CLR version <VER> loaded")
+
+    def test_similarity_helper(self):
+        self.assertEqual(similarity(["a", "b"], ["a", "c"]), 0.5)
+        self.assertEqual(similarity(["a", "<*>"], ["a", "c"]), 1.0)
+        self.assertEqual(similarity(["a"], ["a", "b"]), 0.0)
 
 
 if __name__ == "__main__":
