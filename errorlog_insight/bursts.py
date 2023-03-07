@@ -4,9 +4,18 @@ Events are counted in fixed-width buckets. A bucket is a burst when it holds
 at least `min_count` events and at least `factor` times the average of the
 `window` buckets before it. Neighbouring burst buckets are merged.
 
+Two details keep the baseline honest:
+
+* buckets that were themselves bursts are left out of the history, so one
+  burst does not hide the next one;
+* near the start of the log the average is taken over the buckets that exist,
+  not over a full window of mostly empty ones, which would make every early
+  event look like a spike.
+
 This is deliberately plain arithmetic: no seasonality, no model, nothing that
 cannot be checked with a calculator.
 """
+from bisect import bisect_left
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -45,15 +54,17 @@ def detect_bursts(timestamps, config=None, key=""):
     occupied = sorted(counts)
     bursts = []
     current = None
-    start_of_history = 0  # first position in `occupied` still inside the window
+    burst_buckets = set()
+    first_idx = occupied[0] if occupied else 0
     for pos, idx in enumerate(occupied):
-        while occupied[start_of_history] < idx - config.window:
-            start_of_history += 1
-        history = sum(counts[j] for j in occupied[start_of_history:pos])
-        baseline = history / float(config.window)
+        window_start = bisect_left(occupied, idx - config.window, 0, pos)
+        history = sum(counts[j] for j in occupied[window_start:pos] if j not in burst_buckets)
+        covered = min(config.window, idx - first_idx)  # buckets of log behind this one, up to a window
+        baseline = history / float(covered) if covered else 0.0
         count = counts[idx]
         is_burst = count >= config.min_count and count >= config.factor * baseline
         if is_burst:
+            burst_buckets.add(idx)
             if current is not None and idx - current["last"] <= 1:
                 current["last"] = idx
                 current["count"] += count

@@ -33,7 +33,8 @@ class DetectTests(unittest.TestCase):
         # six events every minute for an hour: the baseline already is six per bucket
         stamps = at(*[m * 60 + k for m in range(60) for k in range(6)])
         bursts = detect_bursts(stamps)
-        self.assertTrue(all(b.start < T0 + timedelta(minutes=2) for b in bursts))
+        # the very first bucket has no history to compare with; nothing after it is unusual
+        self.assertEqual([b.start for b in bursts], [T0])
 
     def test_adjacent_buckets_merge(self):
         stamps = at(*([3600 + i for i in range(6)] + [3660 + i for i in range(9)]))
@@ -45,6 +46,20 @@ class DetectTests(unittest.TestCase):
     def test_separate_bursts(self):
         stamps = at(*([100 + i for i in range(6)] + [7200 + i for i in range(6)]))
         self.assertEqual(len(detect_bursts(stamps)), 2)
+
+    def test_a_burst_does_not_raise_its_own_baseline(self):
+        # 40 events a minute for three minutes, then 40 a minute again ten minutes later
+        stamps = at(0, 300) + at(*[1800 + m * 60 + k for m in range(3) for k in range(40)])
+        stamps += at(*[2700 + k for k in range(40)])
+        bursts = detect_bursts(stamps)
+        self.assertEqual([b.count for b in bursts], [120, 40])
+        self.assertLess(bursts[1].baseline, 1.0)
+
+    def test_early_events_are_not_diluted_by_an_empty_window(self):
+        # 4 events a minute is the normal rate; a minute of 11 right after must not be
+        # compared against 30 buckets that do not exist yet
+        stamps = at(*[m * 60 + k for m in range(5) for k in range(4)]) + at(*[300 + k for k in range(11)])
+        self.assertEqual(detect_bursts(stamps, BurstConfig(min_count=10)), [])
 
     def test_factor_and_window_are_configurable(self):
         stamps = at(*([i * 60 for i in range(30)] + [1800 + i for i in range(5)]))
