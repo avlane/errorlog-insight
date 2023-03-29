@@ -32,6 +32,8 @@ to look at next. Files can be the real UTF-16 ERRORLOG, a grid saved from
 Options:
 
 * `--json` writes the same findings as JSON (one object per finding with its details).
+* `--html` writes one self-contained HTML page (inline CSS, no scripts, light and dark),
+  with every finding expandable to show what was extracted from it.
 * `--top N` sets how many groups of unrecognised messages are listed (default 10).
 * `--burst-min N` and `--burst-factor X` tune burst detection: a minute with at least N
   events of one kind, and X times the average of the previous 30 minutes, is reported as a burst.

@@ -5,6 +5,7 @@ import sys
 from . import __version__
 from .bursts import BurstConfig, find_bursts
 from .classify import classify, unclassified
+from .htmlreport import render_html
 from .reader import read_entries
 from .timeline import default_label, merge_entries, merge_findings
 from .model import SEVERITIES, severity_rank
@@ -17,7 +18,9 @@ def build_parser():
         description="Summarise SQL Server ERRORLOG files.",
     )
     p.add_argument("files", nargs="+", help="ERRORLOG files (UTF-16 LE) or saved sp_readerrorlog output")
-    p.add_argument("--json", action="store_true", help="write JSON instead of text")
+    fmt = p.add_mutually_exclusive_group()
+    fmt.add_argument("--json", action="store_true", help="write JSON instead of text")
+    fmt.add_argument("--html", action="store_true", help="write a self-contained HTML report instead of text")
     p.add_argument("--min-severity", choices=SEVERITIES, default="info",
                    help="hide findings below this severity (default: info)")
     p.add_argument("--top", type=int, default=10, metavar="N",
@@ -48,7 +51,7 @@ def main(argv=None, out=None):
     findings = merge_findings([f for f in all_findings if severity_rank(f.severity) >= floor])
     config = BurstConfig(min_count=args.burst_min, factor=args.burst_factor)
     bursts = find_bursts(findings, config)
-    render = render_json if args.json else render_text
+    render = render_json if args.json else render_html if args.html else render_text
     out.write(render(entries, findings, args.files, unknown=unknown, top=args.top, bursts=bursts,
                      timeline=args.timeline))
     return 0
