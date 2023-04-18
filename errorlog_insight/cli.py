@@ -31,13 +31,24 @@ def build_parser():
                    help="how many times the recent average a bucket must reach (default: 3)")
     p.add_argument("--timeline", action="store_true",
                    help="list the findings of all files in one time-ordered timeline")
+    p.add_argument("-o", "--output", metavar="FILE",
+                   help="write the report to FILE (UTF-8) instead of standard output")
     p.add_argument("--version", action="version", version="%(prog)s " + __version__)
     return p
 
 
+def _utf8_stdout():
+    """Windows consoles default to a legacy code page; log text (logins, paths) is not always ASCII."""
+    stream = sys.stdout
+    if hasattr(stream, "reconfigure"):
+        stream.reconfigure(encoding="utf-8", errors="replace")
+    return stream
+
+
 def main(argv=None, out=None):
-    out = out or sys.stdout
     args = build_parser().parse_args(argv)
+    if out is None and not args.output:
+        out = _utf8_stdout()
     per_file = []
     all_findings, unknown = [], []
     for path in args.files:
@@ -52,8 +63,13 @@ def main(argv=None, out=None):
     config = BurstConfig(min_count=args.burst_min, factor=args.burst_factor)
     bursts = find_bursts(findings, config)
     render = render_json if args.json else render_html if args.html else render_text
-    out.write(render(entries, findings, args.files, unknown=unknown, top=args.top, bursts=bursts,
-                     timeline=args.timeline))
+    report = render(entries, findings, args.files, unknown=unknown, top=args.top, bursts=bursts,
+                    timeline=args.timeline)
+    if args.output:
+        with open(args.output, "w", encoding="utf-8", newline="\n") as f:
+            f.write(report)
+    else:
+        out.write(report)
     return 0
 
 

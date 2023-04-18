@@ -34,6 +34,9 @@ Options:
 * `--json` writes the same findings as JSON (one object per finding with its details).
 * `--html` writes one self-contained HTML page (inline CSS, no scripts, light and dark),
   with every finding expandable to show what was extracted from it.
+* `-o FILE` writes the report to FILE as UTF-8. (Standard output is switched to UTF-8
+  too, because logins and paths in the log are not always ASCII and Windows consoles
+  default to a legacy code page.)
 * `--top N` sets how many groups of unrecognised messages are listed (default 10).
 * `--burst-min N` and `--burst-factor X` tune burst detection: a minute with at least N
   events of one kind, and X times the average of the previous 30 minutes, is reported as a burst.

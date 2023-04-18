@@ -1,10 +1,13 @@
 import contextlib
 import io
 import json
+import os
+import tempfile
 import unittest
 
 from errorlog_insight.cli import main
 from tests.helpers import fixture
+from tools.encode_log import encode
 
 
 def run(*names, extra=()):
@@ -104,6 +107,36 @@ class EntryPointTests(unittest.TestCase):
             main(["--version"])
         self.assertEqual(ctx.exception.code, 0)
         self.assertIn("errorlog-insight", out.getvalue())
+
+
+class OutputFileTests(unittest.TestCase):
+    def make_log(self, directory, text):
+        path = os.path.join(directory, "ERRORLOG")
+        with open(path, "wb") as f:
+            f.write(encode(text))
+        return path
+
+    def test_output_file_is_utf8(self):
+        line = ("2023-04-18 10:00:00.10 Logon       Login failed for user 'Jos\u00e9'. "
+                "Reason: Could not find a login matching the name provided. [CLIENT: 10.0.0.1]\n")
+        with tempfile.TemporaryDirectory() as tmp:
+            log = self.make_log(tmp, line)
+            target = os.path.join(tmp, "report.txt")
+            out = io.StringIO()
+            code = main([log, "-o", target], out=out)
+            self.assertEqual(code, 0)
+            self.assertEqual(out.getvalue(), "")
+            with open(target, "rb") as f:
+                data = f.read()
+        self.assertIn("Jos\u00e9".encode("utf-8"), data)
+        self.assertNotIn(b"\r\n", data)
+
+    def test_output_file_html(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = os.path.join(tmp, "report.html")
+            main([fixture("io_stalls.log"), "--html", "--output", target])
+            with open(target, encoding="utf-8") as f:
+                self.assertTrue(f.read().startswith("<!doctype html>"))
 
 
 if __name__ == "__main__":
