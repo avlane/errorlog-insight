@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "errorlog-insight"
+dynamic = ["version"]
+description = "Rule-based insight for SQL Server ERRORLOG files"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [{name = "Avery Lane"}]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Database",
+    "Topic :: System :: Logging",
+]
+
+[project.scripts]
+errorlog-insight = "errorlog_insight.cli:console_main"
+
+[tool.setuptools.dynamic]
+version = {attr = "errorlog_insight.__version__"}
+
+[tool.setuptools.packages.find]
+include = ["errorlog_insight*"]

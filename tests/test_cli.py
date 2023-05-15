@@ -101,6 +101,10 @@ class EntryPointTests(unittest.TestCase):
         from errorlog_insight import cli
         self.assertTrue(callable(cli.console_main))
 
+    def test_package_version_is_declared(self):
+        import errorlog_insight
+        self.assertRegex(errorlog_insight.__version__, r"^\d+\.\d+\.\d+$")
+
     def test_version_flag(self):
         out = io.StringIO()
         with contextlib.redirect_stdout(out), self.assertRaises(SystemExit) as ctx:
