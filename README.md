@@ -62,6 +62,21 @@ Recognised so far:
 | Availability groups | 1480 role changes, 19406 replica state, 35264/35265 data movement, 41142 |
 | Lifecycle | startup banner, ready, shutdown, recovery progress |
 
+## Config file
+
+`--config FILE` reads defaults for `--top`, `--min-severity` and the burst options from
+a TOML file (Python 3.11+) or an INI file; flags on the command line win.
+
+```toml
+[report]
+top = 20
+min_severity = "warning"
+
+[bursts]
+min = 8
+factor = 4.0
+```
+
 See [docs/classifiers.md](docs/classifiers.md) for what each rule extracts and how
 it picks a severity.
 
