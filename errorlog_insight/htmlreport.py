@@ -6,6 +6,7 @@ from .classify import LABELS
 from .cluster import cluster_entries
 from .model import severity_rank
 from .report import group_findings
+from .summaries import io_summary
 from .timeline import default_label
 
 CSS = """
@@ -92,6 +93,15 @@ def render_html(entries, findings, files=(), unknown=(), top=10, bursts=(), time
         out.extend(_finding_html(f) for f in ranked)
     else:
         out.append("<p>Nothing recognised.</p>")
+
+    io_rows = io_summary(findings)
+    if io_rows:
+        out.append("<h2>Slow I/O by file</h2><table><tr><th>File</th><th>Database</th><th>Worst</th><th>Requests</th><th>Episodes</th><th>First</th><th>Last</th></tr>")
+        for r in io_rows:
+            out.append('<tr><td><code>%s</code></td><td>%s</td><td class="num">%d s</td><td class="num">%d</td><td class="num">%d</td><td>%s</td><td>%s</td></tr>' % (
+                esc(r["file"]), esc(r["database"]), r["max_seconds"], r["requests"], r["episodes"],
+                esc(_time(r["first"])), esc(_time(r["last"]))))
+        out.append("</table>")
 
     if bursts:
         out.append("<h2>Bursts</h2><table><tr><th>Code</th><th>Type</th><th>Start</th><th>End</th><th>Count</th><th>Baseline</th></tr>")

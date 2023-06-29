@@ -5,6 +5,7 @@ import json
 from .classify import LABELS
 from .cluster import cluster_entries
 from .model import severity_rank
+from .summaries import io_summary
 from .timeline import timeline_lines
 
 ADVICE_LIMIT = 10
@@ -57,11 +58,24 @@ def render_text(entries, findings, files=(), unknown=(), top=10, bursts=(), time
             lines.append("      -> %s" % f.advice)
     if len(ranked) > ADVICE_LIMIT:
         lines.append("  ... and %d more" % (len(ranked) - ADVICE_LIMIT))
+    lines.extend(_io_lines(findings))
     lines.extend(_burst_lines(bursts))
     if timeline:
         lines.extend(["", "Timeline"] + ["  " + t for t in timeline_lines(findings)])
     lines.extend(_unrecognised_lines(unknown, top))
     return "\n".join(lines) + "\n"
+
+
+def _io_lines(findings):
+    rows = io_summary(findings)
+    if not rows:
+        return []
+    lines = ["", "Slow I/O by file"]
+    for r in rows:
+        lines.append("  %s (%s, %s)  worst %d s, %d requests in %d message(s), %d episode(s), %s .. %s" % (
+            r["file"], r["database"], r["file_kind"], r["max_seconds"], r["requests"], r["messages"],
+            r["episodes"], r["first"].strftime("%H:%M:%S"), r["last"].strftime("%H:%M:%S")))
+    return lines
 
 
 def _burst_lines(bursts):
@@ -133,6 +147,7 @@ def render_json(entries, findings, files=(), unknown=(), top=10, bursts=(), time
         "period": {"first": _iso(first) if first else None, "last": _iso(last) if last else None},
         "findings": [finding_to_dict(f) for f in findings],
         "bursts": [burst_to_dict(b) for b in bursts],
+        "summaries": {"io": [dict(r, first=_iso(r["first"]), last=_iso(r["last"])) for r in io_summary(findings)]},
         "unrecognised": [cluster_to_dict(c) for c in cluster_entries(unknown)[:top]],
     }
     return json.dumps(doc, indent=2) + "\n"
