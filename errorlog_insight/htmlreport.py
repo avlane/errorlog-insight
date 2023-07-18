@@ -6,7 +6,7 @@ from .classify import LABELS
 from .cluster import cluster_entries
 from .model import severity_rank
 from .report import group_findings
-from .summaries import io_summary
+from .summaries import io_summary, login_summary
 from .timeline import default_label
 
 CSS = """
@@ -100,6 +100,15 @@ def render_html(entries, findings, files=(), unknown=(), top=10, bursts=(), time
         for r in io_rows:
             out.append('<tr><td><code>%s</code></td><td>%s</td><td class="num">%d s</td><td class="num">%d</td><td class="num">%d</td><td>%s</td><td>%s</td></tr>' % (
                 esc(r["file"]), esc(r["database"]), r["max_seconds"], r["requests"], r["episodes"],
+                esc(_time(r["first"])), esc(_time(r["last"]))))
+        out.append("</table>")
+
+    login_rows = login_summary(findings)
+    if login_rows:
+        out.append("<h2>Login failures by client</h2><table><tr><th>Client</th><th>Failures</th><th>Pattern</th><th>Logins</th><th>First</th><th>Last</th></tr>")
+        for r in login_rows:
+            out.append('<tr><td>%s</td><td class="num">%d</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (
+                esc(r["client"]), r["failures"], esc(r["pattern"]), esc(", ".join(r["users"])),
                 esc(_time(r["first"])), esc(_time(r["last"]))))
         out.append("</table>")
 

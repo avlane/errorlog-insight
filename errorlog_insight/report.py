@@ -5,7 +5,7 @@ import json
 from .classify import LABELS
 from .cluster import cluster_entries
 from .model import severity_rank
-from .summaries import io_summary
+from .summaries import io_summary, login_summary
 from .timeline import timeline_lines
 
 ADVICE_LIMIT = 10
@@ -59,6 +59,7 @@ def render_text(entries, findings, files=(), unknown=(), top=10, bursts=(), time
     if len(ranked) > ADVICE_LIMIT:
         lines.append("  ... and %d more" % (len(ranked) - ADVICE_LIMIT))
     lines.extend(_io_lines(findings))
+    lines.extend(_login_lines(findings))
     lines.extend(_burst_lines(bursts))
     if timeline:
         lines.extend(["", "Timeline"] + ["  " + t for t in timeline_lines(findings)])
@@ -75,6 +76,17 @@ def _io_lines(findings):
         lines.append("  %s (%s, %s)  worst %d s, %d requests in %d message(s), %d episode(s), %s .. %s" % (
             r["file"], r["database"], r["file_kind"], r["max_seconds"], r["requests"], r["messages"],
             r["episodes"], r["first"].strftime("%H:%M:%S"), r["last"].strftime("%H:%M:%S")))
+    return lines
+
+
+def _login_lines(findings):
+    rows = login_summary(findings)
+    if not rows:
+        return []
+    lines = ["", "Login failures by client"]
+    for r in rows:
+        who = ", ".join(r["users"][:3]) + (" +%d more" % (len(r["users"]) - 3) if len(r["users"]) > 3 else "")
+        lines.append("  %-16s x%-3d %-18s %s" % (r["client"], r["failures"], r["pattern"], who))
     return lines
 
 
@@ -147,7 +159,10 @@ def render_json(entries, findings, files=(), unknown=(), top=10, bursts=(), time
         "period": {"first": _iso(first) if first else None, "last": _iso(last) if last else None},
         "findings": [finding_to_dict(f) for f in findings],
         "bursts": [burst_to_dict(b) for b in bursts],
-        "summaries": {"io": [dict(r, first=_iso(r["first"]), last=_iso(r["last"])) for r in io_summary(findings)]},
+        "summaries": {
+            "io": [dict(r, first=_iso(r["first"]), last=_iso(r["last"])) for r in io_summary(findings)],
+            "logins": [dict(r, first=_iso(r["first"]), last=_iso(r["last"])) for r in login_summary(findings)],
+        },
         "unrecognised": [cluster_to_dict(c) for c in cluster_entries(unknown)[:top]],
     }
     return json.dumps(doc, indent=2) + "\n"

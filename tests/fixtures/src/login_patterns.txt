@@ -1,0 +1,122 @@
+2023-07-11 01:00:00.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 01:00:00.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 01:05:07.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 01:05:07.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 01:10:03.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 01:10:03.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 01:15:10.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 01:15:10.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 01:20:06.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 01:20:06.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 01:25:02.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 01:25:02.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 01:30:09.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 01:30:09.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 01:35:05.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 01:35:05.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 01:40:01.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 01:40:01.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 01:45:08.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 01:45:08.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 01:50:04.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 01:50:04.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 01:55:00.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 01:55:00.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 02:00:07.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 02:00:07.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 02:05:03.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 02:05:03.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 02:10:10.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 02:10:10.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 02:15:06.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 02:15:06.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 02:20:02.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 02:20:02.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 02:25:09.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 02:25:09.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 02:30:05.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 02:30:05.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 02:35:01.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 02:35:01.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 02:40:08.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 02:40:08.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 02:45:04.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 02:45:04.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 02:50:00.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 02:50:00.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 02:55:07.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 02:55:07.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 03:00:03.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 03:00:03.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 03:05:10.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 03:05:10.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 03:10:06.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 03:10:06.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 03:12:00.42 Logon       Error: 18456, Severity: 14, State: 8.
+2023-07-11 03:12:00.42 Logon       Login failed for user 'sa'. Reason: Password did not match that for the login provided. [CLIENT: 203.0.113.45]
+2023-07-11 03:12:25.42 Logon       Error: 18456, Severity: 14, State: 5.
+2023-07-11 03:12:25.42 Logon       Login failed for user 'admin'. Reason: Could not find a login matching the name provided. [CLIENT: 203.0.113.45]
+2023-07-11 03:12:50.42 Logon       Error: 18456, Severity: 14, State: 5.
+2023-07-11 03:12:50.42 Logon       Login failed for user 'test'. Reason: Could not find a login matching the name provided. [CLIENT: 203.0.113.45]
+2023-07-11 03:13:15.42 Logon       Error: 18456, Severity: 14, State: 5.
+2023-07-11 03:13:15.42 Logon       Login failed for user 'backup'. Reason: Could not find a login matching the name provided. [CLIENT: 203.0.113.45]
+2023-07-11 03:13:40.42 Logon       Error: 18456, Severity: 14, State: 5.
+2023-07-11 03:13:40.42 Logon       Login failed for user 'sql'. Reason: Could not find a login matching the name provided. [CLIENT: 203.0.113.45]
+2023-07-11 03:14:05.42 Logon       Error: 18456, Severity: 14, State: 5.
+2023-07-11 03:14:05.42 Logon       Login failed for user 'user1'. Reason: Could not find a login matching the name provided. [CLIENT: 203.0.113.45]
+2023-07-11 03:14:30.42 Logon       Error: 18456, Severity: 14, State: 8.
+2023-07-11 03:14:30.42 Logon       Login failed for user 'sa'. Reason: Password did not match that for the login provided. [CLIENT: 203.0.113.45]
+2023-07-11 03:14:55.42 Logon       Error: 18456, Severity: 14, State: 5.
+2023-07-11 03:14:55.42 Logon       Login failed for user 'admin'. Reason: Could not find a login matching the name provided. [CLIENT: 203.0.113.45]
+2023-07-11 03:15:02.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 03:15:02.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 03:15:20.42 Logon       Error: 18456, Severity: 14, State: 5.
+2023-07-11 03:15:20.42 Logon       Login failed for user 'test'. Reason: Could not find a login matching the name provided. [CLIENT: 203.0.113.45]
+2023-07-11 03:15:45.42 Logon       Error: 18456, Severity: 14, State: 5.
+2023-07-11 03:15:45.42 Logon       Login failed for user 'backup'. Reason: Could not find a login matching the name provided. [CLIENT: 203.0.113.45]
+2023-07-11 03:16:10.42 Logon       Error: 18456, Severity: 14, State: 5.
+2023-07-11 03:16:10.42 Logon       Login failed for user 'sql'. Reason: Could not find a login matching the name provided. [CLIENT: 203.0.113.45]
+2023-07-11 03:16:35.42 Logon       Error: 18456, Severity: 14, State: 5.
+2023-07-11 03:16:35.42 Logon       Login failed for user 'user1'. Reason: Could not find a login matching the name provided. [CLIENT: 203.0.113.45]
+2023-07-11 03:20:09.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 03:20:09.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 03:25:05.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 03:25:05.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 03:30:01.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 03:30:01.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 03:35:08.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 03:35:08.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 03:40:04.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 03:40:04.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 03:45:00.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 03:45:00.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 03:50:07.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 03:50:07.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 03:55:03.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 03:55:03.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 04:00:10.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 04:00:10.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 04:05:06.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 04:05:06.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 04:10:02.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 04:10:02.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 04:15:09.13 Logon       Error: 18456, Severity: 14, State: 38.
+2023-07-11 04:15:09.13 Logon       Login failed for user 'appsvc'. Reason: Failed to open the explicitly specified database 'Sales_Old'. [CLIENT: 10.20.4.50]
+2023-07-11 09:02:14.50 Logon       Error: 18456, Severity: 14, State: 8.
+2023-07-11 09:02:14.50 Logon       Login failed for user 'CONTOSO\jdoe'. Reason: Password did not match that for the login provided. [CLIENT: 10.20.8.19]
+2023-07-11 09:02:40.10 Logon       Error: 18456, Severity: 14, State: 8.
+2023-07-11 09:02:40.10 Logon       Login failed for user 'CONTOSO\jdoe'. Reason: Password did not match that for the login provided. [CLIENT: 10.20.8.19]
+2023-07-11 14:30:00.25 Logon       Error: 18456, Severity: 14, State: 8.
+2023-07-11 14:30:00.25 Logon       Login failed for user 'reports'. Reason: Password did not match that for the login provided. [CLIENT: 10.20.8.15]
+2023-07-11 14:30:20.25 Logon       Error: 18456, Severity: 14, State: 8.
+2023-07-11 14:30:20.25 Logon       Login failed for user 'reports'. Reason: Password did not match that for the login provided. [CLIENT: 10.20.8.15]
+2023-07-11 14:30:40.25 Logon       Error: 18456, Severity: 14, State: 8.
+2023-07-11 14:30:40.25 Logon       Login failed for user 'reports'. Reason: Password did not match that for the login provided. [CLIENT: 10.20.8.15]
+2023-07-11 14:31:00.25 Logon       Error: 18456, Severity: 14, State: 8.
+2023-07-11 14:31:00.25 Logon       Login failed for user 'reports'. Reason: Password did not match that for the login provided. [CLIENT: 10.20.8.15]
+2023-07-11 14:31:20.25 Logon       Error: 18456, Severity: 14, State: 8.
+2023-07-11 14:31:20.25 Logon       Login failed for user 'reports'. Reason: Password did not match that for the login provided. [CLIENT: 10.20.8.15]
+2023-07-11 14:31:40.25 Logon       Error: 18456, Severity: 14, State: 8.
+2023-07-11 14:31:40.25 Logon       Login failed for user 'reports'. Reason: Password did not match that for the login provided. [CLIENT: 10.20.8.15]
+2023-07-11 14:32:00.25 Logon       Error: 18456, Severity: 14, State: 8.
+2023-07-11 14:32:00.25 Logon       Login failed for user 'reports'. Reason: Password did not match that for the login provided. [CLIENT: 10.20.8.15]

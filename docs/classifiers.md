@@ -24,6 +24,16 @@ seconds).
   from the reason text.
 * severity: warning
 
+### Login failures by client
+
+The report groups 18456 findings by client address and names the pattern:
+*password guessing* (five or more wrong passwords for one login within five
+minutes), *many users tried* (three or more different logins within ten
+minutes), *repeating client* (ten or more failures spread over two hours or
+more, usually a service with a stale password or database name) and
+*occasional*. Only the credential states 2, 5, 8 and 9 count towards the first
+two patterns.
+
 ## Slow I/O: 833
 
 `SQL Server has encountered N occurrence(s) of I/O requests taking longer than

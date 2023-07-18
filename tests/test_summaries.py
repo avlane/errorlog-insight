@@ -5,7 +5,7 @@ import unittest
 from errorlog_insight.classify import classify
 from errorlog_insight.cli import main
 from errorlog_insight.reader import read_entries
-from errorlog_insight.summaries import io_summary
+from errorlog_insight.summaries import io_summary, login_summary, login_summary
 from tests.helpers import fixture
 
 
@@ -68,6 +68,61 @@ class ReportTests(unittest.TestCase):
         out = io.StringIO()
         main([fixture("io_stalls.log"), "--html"], out=out)
         self.assertIn("<h2>Slow I/O by file</h2>", out.getvalue())
+
+
+class LoginSummaryTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.rows = login_summary(classify(read_entries(fixture("login_patterns.log"))))
+        cls.by_client = {r["client"]: r for r in cls.rows}
+
+    def test_patterns(self):
+        patterns = {c: r["pattern"] for c, r in self.by_client.items()}
+        self.assertEqual(patterns, {
+            "10.20.8.15": "password guessing",
+            "203.0.113.45": "many users tried",
+            "10.20.4.50": "repeating client",
+            "10.20.8.19": "occasional",
+        })
+
+    def test_worst_first(self):
+        self.assertEqual([r["pattern"] for r in self.rows],
+                         ["password guessing", "many users tried", "repeating client", "occasional"])
+
+    def test_many_users_row(self):
+        r = self.by_client["203.0.113.45"]
+        self.assertEqual(r["failures"], 12)
+        self.assertEqual(r["users"], ["admin", "backup", "sa", "sql", "test", "user1"])
+        self.assertEqual(r["states"], {5: 10, 8: 2})
+
+    def test_repeating_client_is_database_state(self):
+        r = self.by_client["10.20.4.50"]
+        self.assertEqual(r["failures"], 40)
+        self.assertEqual(r["states"], {38: 40})
+
+    def test_two_typos_are_just_occasional(self):
+        self.assertEqual(self.by_client["10.20.8.19"]["failures"], 2)
+
+    def test_spread_out_wrong_passwords_are_not_guessing(self):
+        from datetime import datetime, timedelta
+        from errorlog_insight.model import Entry
+        entries = [Entry(datetime(2023, 7, 18, 8, 0) + timedelta(minutes=30 * i), "Logon",
+                         "Login failed for user 'bob'. Reason: Password did not match that for the login provided. [CLIENT: 10.1.1.1]")
+                   for i in range(6)]
+        (row,) = login_summary(classify(entries))
+        self.assertEqual(row["pattern"], "occasional")
+
+    def test_cli_sections(self):
+        out = io.StringIO()
+        main([fixture("login_patterns.log")], out=out)
+        text = out.getvalue()
+        self.assertIn("Login failures by client", text)
+        self.assertIn("203.0.113.45", text)
+        self.assertIn("many users tried", text)
+        self.assertIn("admin, backup, sa +3 more", text)
+        out = io.StringIO()
+        main([fixture("login_patterns.log"), "--html"], out=out)
+        self.assertIn("<h2>Login failures by client</h2>", out.getvalue())
 
 
 if __name__ == "__main__":
