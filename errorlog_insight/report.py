@@ -52,8 +52,10 @@ def render_text(entries, findings, files=(), unknown=(), top=10, bursts=(), time
 
     lines.append("Most severe")
     ranked = sorted(findings, key=lambda f: (-severity_rank(f.severity), f.entry.timestamp))
+    several = len({f.entry.replica for f in findings}) > 1
     for f in ranked[:ADVICE_LIMIT]:
-        lines.append("  [%s] %s  %s" % (f.severity.upper(), f.entry.timestamp.strftime("%Y-%m-%d %H:%M:%S"), f.title))
+        where = "[%s] " % f.entry.replica if several and f.entry.replica else ""
+        lines.append("  [%s] %s  %s%s" % (f.severity.upper(), f.entry.timestamp.strftime("%Y-%m-%d %H:%M:%S"), where, f.title))
         if f.advice:
             lines.append("      -> %s" % f.advice)
     if len(ranked) > ADVICE_LIMIT:

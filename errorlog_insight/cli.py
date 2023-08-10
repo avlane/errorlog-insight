@@ -8,7 +8,7 @@ from .classify import classify, unclassified
 from .config import ConfigError, load_settings
 from .htmlreport import render_html
 from .reader import read_entries
-from .timeline import default_label, merge_entries, merge_findings
+from .timeline import merge_entries, merge_findings, parse_source
 from .model import SEVERITIES, severity_rank
 from .report import render_json, render_text
 
@@ -18,7 +18,9 @@ def build_parser():
         prog="errorlog-insight",
         description="Summarise SQL Server ERRORLOG files.",
     )
-    p.add_argument("files", nargs="+", help="ERRORLOG files (UTF-16 LE) or saved sp_readerrorlog output")
+    p.add_argument("files", nargs="+", metavar="[LABEL=]FILE",
+                   help="ERRORLOG files (UTF-16 LE) or saved sp_readerrorlog output; "
+                        "a LABEL (for example SQLDR02=ERRORLOG.1) names the server in merged output")
     fmt = p.add_mutually_exclusive_group()
     fmt.add_argument("--json", action="store_true", help="write JSON instead of text")
     fmt.add_argument("--html", action="store_true", help="write a self-contained HTML report instead of text")
@@ -59,8 +61,11 @@ def main(argv=None, out=None):
         return 2
     per_file = []
     all_findings, unknown = [], []
-    for path in args.files:
-        entries = read_entries(path, replica=default_label(path))
+    paths = []
+    for arg in args.files:
+        label, path = parse_source(arg)
+        paths.append(path)
+        entries = read_entries(path, replica=label)
         found = classify(entries)
         per_file.append(entries)
         all_findings.extend(found)
@@ -70,7 +75,7 @@ def main(argv=None, out=None):
     findings = merge_findings([f for f in all_findings if severity_rank(f.severity) >= floor])
     bursts = find_bursts(findings, settings.bursts)
     render = render_json if args.json else render_html if args.html else render_text
-    report = render(entries, findings, args.files, unknown=unknown, top=settings.top, bursts=bursts,
+    report = render(entries, findings, paths, unknown=unknown, top=settings.top, bursts=bursts,
                     timeline=args.timeline)
     if args.output:
         with open(args.output, "w", encoding="utf-8", newline="\n") as f:
