@@ -1,6 +1,7 @@
 """Merge entries and findings from several files into one timeline."""
 import os
 import re
+from datetime import timedelta
 
 SOURCE_RE = re.compile(r"^(?P<label>[A-Za-z0-9_.-]+)=(?P<path>.+)$")
 
@@ -54,3 +55,25 @@ def timeline_lines(findings, min_rank=0):
         out.append("%s  %-12s %-8s %s" % (f.entry.timestamp.strftime("%Y-%m-%d %H:%M:%S.%f")[:-4],
                                            label, f.severity, f.title))
     return out
+
+
+OFFSET_RE = re.compile(r"^(?P<label>[A-Za-z0-9_.-]+)=(?P<sign>[+-])(?P<value>\d+(?:\.\d+)?)(?P<unit>ms|s|m|h)?$")
+UNITS = {"ms": 0.001, "s": 1.0, "m": 60.0, "h": 3600.0, None: 1.0}
+
+
+def parse_offset(text):
+    """Parse 'SQLDR02=+2.5s' into ('SQLDR02', timedelta). Units: ms, s (default), m, h."""
+    m = OFFSET_RE.match(text)
+    if not m:
+        raise ValueError("offset must look like LABEL=+2s or LABEL=-1.5m, got %r" % text)
+    seconds = float(m.group("value")) * UNITS[m.group("unit")]
+    if m.group("sign") == "-":
+        seconds = -seconds
+    return m.group("label"), timedelta(seconds=seconds)
+
+
+def apply_offset(entries, delta):
+    """Shift every entry by `delta` (positive moves the entries later). Used to correct clock skew."""
+    for entry in entries:
+        entry.timestamp += delta
+    return entries

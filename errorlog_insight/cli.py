@@ -8,7 +8,7 @@ from .classify import classify, unclassified
 from .config import ConfigError, load_settings
 from .htmlreport import render_html
 from .reader import read_entries
-from .timeline import merge_entries, merge_findings, parse_source
+from .timeline import apply_offset, merge_entries, merge_findings, parse_offset, parse_source
 from .model import SEVERITIES, severity_rank
 from .report import render_json, render_text
 
@@ -32,6 +32,9 @@ def build_parser():
                    help="fewest events in one bucket that can count as a burst (default: 5)")
     p.add_argument("--burst-factor", type=float, default=None, metavar="X",
                    help="how many times the recent average a bucket must reach (default: 3)")
+    p.add_argument("--offset", action="append", default=[], metavar="LABEL=+2s",
+                   help="shift one server's timestamps to correct clock skew, for example SQLDR02=-1.5s "
+                        "(units: ms, s, m, h; repeatable)")
     p.add_argument("--timeline", action="store_true",
                    help="list the findings of all files in one time-ordered timeline")
     p.add_argument("--config", metavar="FILE",
@@ -59,6 +62,11 @@ def main(argv=None, out=None):
     except ConfigError as exc:
         sys.stderr.write("errorlog-insight: %s\n" % exc)
         return 2
+    try:
+        offsets = dict(parse_offset(o) for o in args.offset)
+    except ValueError as exc:
+        sys.stderr.write("errorlog-insight: %s\n" % exc)
+        return 2
     per_file = []
     all_findings, unknown = [], []
     paths = []
@@ -66,10 +74,15 @@ def main(argv=None, out=None):
         label, path = parse_source(arg)
         paths.append(path)
         entries = read_entries(path, replica=label)
+        if label in offsets:
+            apply_offset(entries, offsets.pop(label))
         found = classify(entries)
         per_file.append(entries)
         all_findings.extend(found)
         unknown.extend(unclassified(entries, found))
+    if offsets:
+        sys.stderr.write("errorlog-insight: --offset names no input file: %s\n" % ", ".join(sorted(offsets)))
+        return 2
     entries = merge_entries(*per_file)
     floor = severity_rank(settings.min_severity)
     findings = merge_findings([f for f in all_findings if severity_rank(f.severity) >= floor])

@@ -1,13 +1,16 @@
+import contextlib
 import io
 import json
 import os
 import tempfile
 import unittest
+from datetime import timedelta
 
 from errorlog_insight.classify import classify
 from errorlog_insight.cli import main
 from errorlog_insight.reader import read_entries
-from errorlog_insight.timeline import default_label, merge_entries, merge_findings, parse_source, timeline_lines
+from errorlog_insight.timeline import (
+    apply_offset, default_label, merge_entries, merge_findings, parse_offset, parse_source, timeline_lines)
 from tests.helpers import fixture
 
 
@@ -61,6 +64,43 @@ class SourceLabelTests(unittest.TestCase):
             path = os.path.join(tmp, "a=b.log")
             open(path, "w").close()
             self.assertEqual(parse_source(path)[1], path)
+
+
+class OffsetTests(unittest.TestCase):
+    def test_parse(self):
+        self.assertEqual(parse_offset("SQLDR02=+2s"), ("SQLDR02", timedelta(seconds=2)))
+        self.assertEqual(parse_offset("SQLDR02=-1.5m"), ("SQLDR02", timedelta(seconds=-90)))
+        self.assertEqual(parse_offset("a-b.c=+250ms"), ("a-b.c", timedelta(milliseconds=250)))
+        self.assertEqual(parse_offset("x=+1h")[1], timedelta(hours=1))
+        self.assertEqual(parse_offset("x=-3")[1], timedelta(seconds=-3))
+
+    def test_parse_errors(self):
+        for bad in ("SQLDR02", "SQLDR02=2s", "SQLDR02=+s", "=+2s", "SQLDR02=+2d"):
+            with self.assertRaises(ValueError, msg=bad):
+                parse_offset(bad)
+
+    def test_apply_offset(self):
+        entries = read_entries(fixture("ag_secondary.log"))
+        first = entries[0].timestamp
+        apply_offset(entries, timedelta(seconds=5))
+        self.assertEqual(entries[0].timestamp, first + timedelta(seconds=5))
+
+    def test_offset_reorders_the_merged_timeline(self):
+        def first_label(*extra):
+            out = io.StringIO()
+            main(["SQLPROD01=" + fixture("ag_primary.log"), "SQLDR02=" + fixture("ag_secondary.log"),
+                  "--timeline"] + list(extra), out=out)
+            return out.getvalue().split("\nTimeline\n")[1].splitlines()[0]
+        self.assertIn("SQLDR02", first_label())
+        self.assertIn("SQLPROD01", first_label("--offset", "SQLDR02=+3s"))
+
+    def test_bad_offsets_exit_2(self):
+        for extra in (["--offset", "nonsense"], ["--offset", "OTHER=+1s"]):
+            err = io.StringIO()
+            with contextlib.redirect_stderr(err):
+                code = main([fixture("ag_primary.log")] + extra, out=io.StringIO())
+            self.assertEqual(code, 2, extra)
+            self.assertIn("errorlog-insight:", err.getvalue())
 
 
 class CliTimelineTests(unittest.TestCase):
