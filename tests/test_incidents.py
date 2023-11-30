@@ -1,7 +1,10 @@
+import io
+import json
 import unittest
 from datetime import datetime, timedelta
 
 from errorlog_insight.classify import classify
+from errorlog_insight.cli import main
 from errorlog_insight.incidents import find_incidents
 from errorlog_insight.reader import read_entries
 from tests.helpers import fixture
@@ -65,6 +68,37 @@ class IncidentTests(unittest.TestCase):
 
     def test_nothing_to_report(self):
         self.assertEqual(find_incidents(findings(("A", "noise.log"), ("A", "io_stalls.log"))), [])
+
+
+class IncidentReportTests(unittest.TestCase):
+    def run_cli(self, *extra):
+        out = io.StringIO()
+        main(["SQLPROD01=" + fixture("ag_primary.log"), "SQLDR02=" + fixture("ag_secondary.log")] + list(extra), out=out)
+        return out.getvalue()
+
+    def test_text_section(self):
+        text = self.run_cli()
+        self.assertIn("Availability group incidents", text)
+        self.assertIn("2022-05-10 21:59:59 .. 22:00:04  planned failover   AG_Sales  SQLPROD01 -> SQLDR02  no primary for 1.1 s", text)
+        self.assertIn("databases: Reporting, Sales", text)
+
+    def test_incidents_survive_the_severity_filter(self):
+        text = self.run_cli("--min-severity", "warning")
+        self.assertIn("planned failover", text)
+
+    def test_json(self):
+        doc = json.loads(self.run_cli("--json"))
+        self.assertEqual(doc["incidents"][0]["new_primary"], "SQLDR02")
+        self.assertEqual(doc["incidents"][0]["start"], "2022-05-10T21:59:59.800")
+
+    def test_html(self):
+        text = self.run_cli("--html")
+        self.assertIn("<h2>Availability group incidents</h2>", text)
+        self.assertIn("<td>planned failover</td>", text)
+
+    def test_skew_hint(self):
+        text = self.run_cli("--offset", "SQLDR02=-30s")
+        self.assertIn("clocks differ, try --offset", text)
 
 
 if __name__ == "__main__":

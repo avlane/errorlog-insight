@@ -101,6 +101,16 @@ sessions that would not deadlock with READ_COMMITTED_SNAPSHOT. Error.
   it, error otherwise. 35265 is the resume (info).
 * 41142 replica cannot become primary (error).
 
+### Failover incidents
+
+`incidents.py` groups the role and state messages of all given servers into
+incidents (events less than 90 seconds apart). With the logs of both sides an
+incident names the old and the new primary and how long no replica was
+primary. The kind is *planned failover*, *unplanned failover*, *failed
+failover* (41142 present), *replica rejoined* or *role activity*. A negative
+"no primary" time means the clocks of the two servers differ; use `--offset`.
+Incidents are built from all findings, so `--min-severity` does not hide them.
+
 ## Startup and shutdown
 
 Startup banner (version, level, KB, build, edition, OS), ready for connections,

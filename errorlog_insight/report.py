@@ -31,7 +31,7 @@ def group_findings(findings):
     return sorted(groups.items(), key=lambda kv: (-worst(kv[1]), -len(kv[1]), kv[0]))
 
 
-def render_text(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False):
+def render_text(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False, incidents=()):
     lines = ["errorlog-insight report", ""]
     for name in files:
         lines.append("File:     %s" % name)
@@ -41,6 +41,7 @@ def render_text(entries, findings, files=(), unknown=(), top=10, bursts=(), time
     lines.append("")
     if not findings:
         lines.append("Nothing recognised.")
+        lines.extend(_incident_lines(incidents))
         lines.extend(_unrecognised_lines(unknown, top))
         return "\n".join(lines) + "\n"
 
@@ -60,6 +61,7 @@ def render_text(entries, findings, files=(), unknown=(), top=10, bursts=(), time
             lines.append("      -> %s" % f.advice)
     if len(ranked) > ADVICE_LIMIT:
         lines.append("  ... and %d more" % (len(ranked) - ADVICE_LIMIT))
+    lines.extend(_incident_lines(incidents))
     lines.extend(_io_lines(findings))
     lines.extend(_login_lines(findings))
     lines.extend(_burst_lines(bursts))
@@ -67,6 +69,26 @@ def render_text(entries, findings, files=(), unknown=(), top=10, bursts=(), time
         lines.extend(["", "Timeline"] + ["  " + t for t in timeline_lines(findings)])
     lines.extend(_unrecognised_lines(unknown, top))
     return "\n".join(lines) + "\n"
+
+
+def _incident_lines(incidents):
+    if not incidents:
+        return []
+    lines = ["", "Availability group incidents"]
+    for inc in incidents:
+        when = "%s .. %s" % (inc["start"].strftime("%Y-%m-%d %H:%M:%S"), inc["end"].strftime("%H:%M:%S"))
+        move = ""
+        if inc["old_primary"] or inc["new_primary"]:
+            move = "  %s -> %s" % (inc["old_primary"] or "?", inc["new_primary"] or "?")
+        gap = ""
+        if inc["no_primary_seconds"] is not None:
+            gap = "  no primary for %.1f s" % inc["no_primary_seconds"]
+            if inc["clock_skew_suspected"]:
+                gap += " (negative: clocks differ, try --offset)"
+        lines.append("  %s  %-18s %s%s%s" % (when, inc["kind"], ", ".join(inc["ags"]) or "-", move, gap))
+        if inc["databases"]:
+            lines.append("      databases: %s" % ", ".join(inc["databases"]))
+    return lines
 
 
 def _io_lines(findings):
@@ -151,7 +173,11 @@ def burst_to_dict(b):
             "peak": b.peak, "baseline": b.baseline}
 
 
-def render_json(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False):
+def incident_to_dict(inc):
+    return dict(inc, start=_iso(inc["start"]), end=_iso(inc["end"]))
+
+
+def render_json(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False, incidents=()):
     # the findings list is already in time order, so the JSON needs no separate timeline
     first = min((e.timestamp for e in entries), default=None)
     last = max((e.timestamp for e in entries), default=None)
@@ -161,6 +187,7 @@ def render_json(entries, findings, files=(), unknown=(), top=10, bursts=(), time
         "period": {"first": _iso(first) if first else None, "last": _iso(last) if last else None},
         "findings": [finding_to_dict(f) for f in findings],
         "bursts": [burst_to_dict(b) for b in bursts],
+        "incidents": [incident_to_dict(i) for i in incidents],
         "summaries": {
             "io": [dict(r, first=_iso(r["first"]), last=_iso(r["last"])) for r in io_summary(findings)],
             "logins": [dict(r, first=_iso(r["first"]), last=_iso(r["last"])) for r in login_summary(findings)],

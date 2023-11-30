@@ -66,7 +66,7 @@ def _finding_html(f):
     return "".join(parts)
 
 
-def render_html(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False):
+def render_html(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False, incidents=()):
     out = ['<!doctype html>', '<html lang="en">', '<head>', '<meta charset="utf-8">',
            '<meta name="viewport" content="width=device-width, initial-scale=1">',
            "<title>errorlog-insight report</title>", "<style>%s</style>" % CSS, "</head>", "<body>",
@@ -93,6 +93,15 @@ def render_html(entries, findings, files=(), unknown=(), top=10, bursts=(), time
         out.extend(_finding_html(f) for f in ranked)
     else:
         out.append("<p>Nothing recognised.</p>")
+
+    if incidents:
+        out.append("<h2>Availability group incidents</h2><table><tr><th>When</th><th>Kind</th><th>AG</th><th>Old primary</th><th>New primary</th><th>No primary</th><th>Databases</th></tr>")
+        for inc in incidents:
+            gap = "" if inc["no_primary_seconds"] is None else "%.1f s" % inc["no_primary_seconds"]
+            out.append("<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>" % (
+                esc(_time(inc["start"])), esc(inc["kind"]), esc(", ".join(inc["ags"])), esc(inc["old_primary"]),
+                esc(inc["new_primary"]), esc(gap), esc(", ".join(inc["databases"]))))
+        out.append("</table>")
 
     io_rows = io_summary(findings)
     if io_rows:

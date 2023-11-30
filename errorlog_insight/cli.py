@@ -7,6 +7,7 @@ from .bursts import find_bursts
 from .classify import classify, unclassified
 from .config import ConfigError, load_settings
 from .htmlreport import render_html
+from .incidents import find_incidents
 from .reader import read_entries
 from .timeline import apply_offset, merge_entries, merge_findings, parse_offset, parse_source
 from .model import SEVERITIES, severity_rank
@@ -87,9 +88,10 @@ def main(argv=None, out=None):
     floor = severity_rank(settings.min_severity)
     findings = merge_findings([f for f in all_findings if severity_rank(f.severity) >= floor])
     bursts = find_bursts(findings, settings.bursts)
+    incidents = find_incidents(all_findings)  # planned failovers are info, so use the unfiltered findings
     render = render_json if args.json else render_html if args.html else render_text
     report = render(entries, findings, paths, unknown=unknown, top=settings.top, bursts=bursts,
-                    timeline=args.timeline)
+                    timeline=args.timeline, incidents=incidents)
     if args.output:
         with open(args.output, "w", encoding="utf-8", newline="\n") as f:
             f.write(report)
