@@ -1,0 +1,7 @@
+version: 2
+updates:
+  # the project has no runtime dependencies; only the workflow actions need bumping
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
