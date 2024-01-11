@@ -1,0 +1,9 @@
+2024-01-03 21:14:09.30 Server      A significant part of sql server process memory has been paged out. This may result in a performance degradation. Duration: 0 seconds. Working set (KB): 15120384, committed (KB): 25165824, memory utilization: 60%.
+2024-01-03 21:19:11.02 Server      A significant part of sql server process memory has been paged out. This may result in a performance degradation. Duration: 301 seconds. Working set (KB): 9437184, committed (KB): 25165824, memory utilization: 37%.
+2024-01-03 21:24:12.88 Server      A significant part of sql server process memory has been paged out. This may result in a performance degradation. Duration: 602 seconds. Working set (KB): 4194304, committed (KB): 25165824, memory utilization: 16%.
+2024-01-03 21:25:40.12 spid88      Error: 8645, Severity: 17, State: 1.
+2024-01-03 21:25:40.12 spid88      A timeout occurred while waiting for memory resources to execute the query in resource pool 'default' (2). Rerun the query.
+2024-01-03 21:25:41.40 spid91      Error: 8645, Severity: 17, State: 1.
+2024-01-03 21:25:41.40 spid91      A timeout occurred while waiting for memory resources to execute the query in resource pool 'default' (2). Rerun the query.
+2024-01-03 21:26:02.77 spid97      Error: 701, Severity: 17, State: 123.
+2024-01-03 21:26:02.77 spid97      There is insufficient system memory in resource pool 'default' to run this query.

@@ -56,6 +56,10 @@ two patterns.
 ## Memory and log space: 701, 802, 9002
 
 * 701 and 802: error. 701 reports the resource pool.
+* 17890 working set trimmed ("a significant part of sql server process memory has been
+  paged out"): details `duration_seconds`, `working_set_kb`, `committed_kb`,
+  `memory_utilization`. Warning, error when under 50% remains or it lasted five minutes.
+* 8645 memory grant timeout: error, with the resource pool when the message names one.
 * 9002 log full: critical. Details carry `database` and `log_reuse_wait`; the
   advice depends on the wait (LOG_BACKUP, ACTIVE_TRANSACTION,
   AVAILABILITY_REPLICA, REPLICATION, ...). Messages from before SQL Server 2012
