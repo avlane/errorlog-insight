@@ -60,6 +60,7 @@ Recognised so far:
 | I/O | 833 slow I/O (file, database, duration) |
 | Schedulers | 17883 non-yielding, 17884 worker starvation |
 | Memory and log | 701, 802, 9002 (with the log reuse wait) |
+| Corruption | 823, 824, 825 |
 | Backups | 3041, 18204, 3201, 4208 and the success messages |
 | Deadlocks | trace flag 1222 graphs: victim, objects, who waits for whom |
 | Crashes | stack dumps, assertions (17065/17066), 17310 |

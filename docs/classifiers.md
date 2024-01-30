@@ -65,6 +65,13 @@ two patterns.
   AVAILABILITY_REPLICA, REPLICATION, ...). Messages from before SQL Server 2012
   have no reason and get the generic advice.
 
+## Corruption: 823, 824, 825
+
+* 824 logical consistency error (critical): `kind` (incorrect checksum, torn page, ...),
+  `detail`, `operation`, `file_id`, `page`, `database_id`, `offset`, `path`.
+* 823 operating system error (critical): `os_error`, `os_error_text`, `operation`, `path`.
+* 825 read retry (error): the read worked on retry, which is a warning about the storage.
+
 ## Backups
 
 * 3041 backup failed (error): `command`, `kind` (database or log), `database`.
