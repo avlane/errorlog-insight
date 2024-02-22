@@ -1,0 +1,5 @@
+2024-02-18 03:12:44.74 spid55      CHECKDB for database 'Sales' finished without errors on 2024-02-18 03:12:44.737 (local time). This is an informational message only; no user action is required.
+2024-02-18 03:12:44.75 spid55      DBCC CHECKDB (Sales) executed by CONTOSO\svc_sqlagent found 0 errors and repaired 0 errors. Elapsed time: 0 hours 12 minutes 33 seconds.  Internal database snapshot has split point LSN = 00000a2b:00001c3d:0001 and first LSN = 00000a2b:00001c3b:0001.
+2024-02-18 04:00:41.20 spid61      DBCC CHECKDB (Staging) WITH no_infomsgs executed by CONTOSO\kwong found 3 errors and repaired 0 errors. Elapsed time: 0 hours 0 minutes 41 seconds.
+2024-02-18 04:05:12.80 spid61      DBCC CHECKDB (Staging, repair_allow_data_loss) executed by CONTOSO\kwong found 3 errors and repaired 3 errors. Elapsed time: 0 hours 1 minutes 12 seconds.
+2024-02-18 05:30:00.10 spid70      DBCC CHECKTABLE (Sales.dbo.Orders) executed by CONTOSO\kwong found 1 errors and repaired 0 errors. Elapsed time: 0 hours 0 minutes 3 seconds.

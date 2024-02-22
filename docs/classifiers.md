@@ -72,6 +72,10 @@ two patterns.
 * 823 operating system error (critical): `os_error`, `os_error_text`, `operation`, `path`.
 * 825 read retry (error): the read worked on retry, which is a warning about the storage.
 
+* DBCC CHECKDB, CHECKTABLE and friends: `target`, `errors_found`, `errors_repaired`,
+  `elapsed_seconds`, `repair_mode`. Info when clean, critical when errors were found.
+  17573 ("finished without errors") is info.
+
 ## Backups
 
 * 3041 backup failed (error): `command`, `kind` (database or log), `database`.
