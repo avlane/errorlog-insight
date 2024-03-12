@@ -65,6 +65,13 @@ two patterns.
   AVAILABILITY_REPLICA, REPLICATION, ...). Messages from before SQL Server 2012
   have no reason and get the generic advice.
 
+## Connections
+
+* 17806 SSPI handshake failed (warning): `status`, `meaning`, `state`, `client`,
+  `windows_text`. The status code decides the advice (no domain controller, clock
+  skew or locked account, SPN problems, ...).
+* 18452 login from an untrusted domain and 17187 server not ready (warning).
+
 ## Corruption: 823, 824, 825
 
 * 824 logical consistency error (critical): `kind` (incorrect checksum, torn page, ...),

@@ -1,0 +1,12 @@
+2024-03-05 08:02:11.40 Logon       Error: 17806, Severity: 20, State: 14.
+2024-03-05 08:02:11.40 Logon       SSPI handshake failed with error code 0x80090311, state 14 while establishing a connection with integrated security; the connection has been closed. Reason: AcceptSecurityContext failed. The Windows error code indicates the cause of failure. No authority could be contacted for authentication.  [CLIENT: 10.20.8.19]
+2024-03-05 08:02:41.52 Logon       Error: 17806, Severity: 20, State: 14.
+2024-03-05 08:02:41.52 Logon       SSPI handshake failed with error code 0x80090311, state 14 while establishing a connection with integrated security; the connection has been closed. Reason: AcceptSecurityContext failed. The Windows error code indicates the cause of failure. No authority could be contacted for authentication.  [CLIENT: 10.20.8.19]
+2024-03-05 09:15:03.07 Logon       Error: 17806, Severity: 20, State: 24.
+2024-03-05 09:15:03.07 Logon       SSPI handshake failed with error code 0x8009030c, state 24 while establishing a connection with integrated security; the connection has been closed. Reason: AcceptSecurityContext failed. The Windows error code indicates the cause of failure. The logon attempt failed  [CLIENT: 10.20.8.22]
+2024-03-05 10:44:50.66 Logon       Error: 17806, Severity: 20, State: 14.
+2024-03-05 10:44:50.66 Logon       SSPI handshake failed with error code 0x80090322, state 14 while establishing a connection with integrated security; the connection has been closed. Reason: AcceptSecurityContext failed. The Windows error code indicates the cause of failure. The target principal name is incorrect.  [CLIENT: 10.20.4.52]
+2024-03-05 11:30:12.15 Logon       Error: 18452, Severity: 14, State: 1.
+2024-03-05 11:30:12.15 Logon       Login failed. The login is from an untrusted domain and cannot be used with Windows authentication. [CLIENT: 10.20.9.14]
+2024-03-05 11:31:02.45 Logon       Error: 17187, Severity: 16, State: 1.
+2024-03-05 11:31:02.45 Logon       SQL Server is not ready to accept new client connections. Wait a few minutes before trying again. If you have access to the error log, look for the informational message that indicates that SQL Server is ready before trying to connect again.  [CLIENT: 10.20.8.19]
