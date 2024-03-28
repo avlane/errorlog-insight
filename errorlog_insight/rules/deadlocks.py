@@ -21,6 +21,7 @@ def summarise_deadlock(entry, dl):
         if res.object_name and res.object_name not in objects:
             objects.append(res.object_name)
     kinds = sorted({res.kind for res in dl.resources})
+    parallel = "exchangeEvent" in kinds
     details = {
         "victims": [
             {"spid": v.spid, "login": v.login, "app": v.app, "host": v.host,
@@ -30,23 +31,31 @@ def summarise_deadlock(entry, dl):
         "processes": [
             {"spid": p.spid, "login": p.login, "app": p.app, "host": p.host, "database": p.database,
              "procedure": p.procedure, "statement": p.statement, "wait_resource": p.wait_resource,
-             "isolation": p.isolation}
+             "isolation": p.isolation, "ecid": p.ecid}
             for p in dl.processes
         ],
         "objects": objects,
         "lock_kinds": kinds,
+        "parallel": parallel,
         "database": dl.processes[0].database if dl.processes else None,
     }
     advice = []
+    if parallel:
+        advice.append("The query deadlocked with its own parallel threads (exchange events), not with another "
+                      "session. Look at its plan: stale statistics or a skewed distribution are typical; "
+                      "OPTION (MAXDOP 1) or a lower MAXDOP avoids it, and newer builds fix some cases.")
     if any(k in ("pagelock", "ridlock") for k in kinds):
         advice.append("Page or row-id locks point at heap or scan access: check for a missing index on %s."
                       % ", ".join(objects))
     if "keylock" in kinds and len(objects) > 1:
         advice.append("The sessions take %s in opposite orders; make every code path touch them in the same order."
                       % " and ".join(objects))
-    if all((p.isolation or "").startswith("read committed") for p in dl.processes) and dl.processes:
+    if not parallel and dl.processes and all((p.isolation or "").startswith("read committed") for p in dl.processes):
         advice.append("Everything ran at READ COMMITTED; READ_COMMITTED_SNAPSHOT removes reader-writer deadlocks.")
-    if victims:
+    if parallel:
+        who = victims[0] if victims else dl.processes[0]
+        title = "Parallel query deadlocked with itself: spid %s (ecid %d)" % (who.spid, who.ecid)
+    elif victims:
         who = victims[0]
         title = "Deadlock on %s: victim spid %s%s" % (
             ", ".join(objects) or "unknown objects", who.spid,

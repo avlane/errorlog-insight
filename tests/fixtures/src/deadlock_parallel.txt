@@ -1,0 +1,26 @@
+2024-03-20 10:41:10.12 spid19s     deadlock-list
+2024-03-20 10:41:10.12 spid19s      deadlock victim=process1e8f3d468
+2024-03-20 10:41:10.12 spid19s       process-list
+2024-03-20 10:41:10.13 spid19s        process id=process1e8f3d468 taskpriority=0 logused=0 waittime=2814 schedulerid=2 kpid=7340 status=suspended spid=72 sbid=0 ecid=0 priority=0 trancount=0 lastbatchstarted=2024-03-20T10:41:07.230 lastbatchcompleted=2024-03-20T10:41:07.227 lastattention=1900-01-01T00:00:00.227 clientapp=SalesPortal hostname=WEB03 hostpid=4412 loginname=CONTOSO\svc_portal isolationlevel=read committed (2) xactid=0 currentdb=5 currentdbname=Sales lockTimeout=4294967295 clientoption1=671090784 clientoption2=390200
+2024-03-20 10:41:10.13 spid19s         executionStack
+2024-03-20 10:41:10.13 spid19s          frame procname=adhoc line=1 sqlhandle=0x02000000a4c19e1e8d3c5a70c1b3e7a14f6b2bd2f9d7a9b60000000000000000000000000000000000000000
+2024-03-20 10:41:10.14 spid19s     SELECT c.CustomerID, SUM(o.Total) FROM dbo.Customers c JOIN dbo.Orders o ON o.CustomerID = c.CustomerID GROUP BY c.CustomerID OPTION (MAXDOP 8)     
+2024-03-20 10:41:10.14 spid19s         inputbuf
+2024-03-20 10:41:10.14 spid19s     SELECT c.CustomerID, SUM(o.Total) FROM dbo.Customers c JOIN dbo.Orders o ON o.CustomerID = c.CustomerID GROUP BY c.CustomerID OPTION (MAXDOP 8)
+2024-03-20 10:41:10.15 spid19s        process id=process1e8f3c8c8 taskpriority=0 logused=0 waittime=2814 schedulerid=5 kpid=6188 status=suspended spid=72 sbid=0 ecid=3 priority=0 trancount=0 lastbatchstarted=2024-03-20T10:41:07.230 lastbatchcompleted=2024-03-20T10:41:07.227 lastattention=1900-01-01T00:00:00.227 clientapp=SalesPortal hostname=WEB03 hostpid=4412 loginname=CONTOSO\svc_portal isolationlevel=read committed (2) xactid=0 currentdb=5 currentdbname=Sales lockTimeout=4294967295 clientoption1=671090784 clientoption2=390200
+2024-03-20 10:41:10.15 spid19s         executionStack
+2024-03-20 10:41:10.15 spid19s          frame procname=adhoc line=1 sqlhandle=0x02000000a4c19e1e8d3c5a70c1b3e7a14f6b2bd2f9d7a9b60000000000000000000000000000000000000000
+2024-03-20 10:41:10.16 spid19s     SELECT c.CustomerID, SUM(o.Total) FROM dbo.Customers c JOIN dbo.Orders o ON o.CustomerID = c.CustomerID GROUP BY c.CustomerID OPTION (MAXDOP 8)     
+2024-03-20 10:41:10.16 spid19s         inputbuf
+2024-03-20 10:41:10.16 spid19s     SELECT c.CustomerID, SUM(o.Total) FROM dbo.Customers c JOIN dbo.Orders o ON o.CustomerID = c.CustomerID GROUP BY c.CustomerID OPTION (MAXDOP 8)
+2024-03-20 10:41:10.17 spid19s       resource-list
+2024-03-20 10:41:10.17 spid19s        exchangeEvent id=Pipe1e8d5b180 WaitType=e_waitPipeGetRow nodeId=3
+2024-03-20 10:41:10.17 spid19s         owner-list
+2024-03-20 10:41:10.18 spid19s          owner event=e_waitNone id=process1e8f3c8c8
+2024-03-20 10:41:10.18 spid19s         waiter-list
+2024-03-20 10:41:10.18 spid19s          waiter event=e_waitPipeGetRow id=process1e8f3d468
+2024-03-20 10:41:10.19 spid19s        exchangeEvent id=Pipe1e8d5b880 WaitType=e_waitPipeNewRow nodeId=4
+2024-03-20 10:41:10.19 spid19s         owner-list
+2024-03-20 10:41:10.19 spid19s          owner event=e_waitNone id=process1e8f3d468
+2024-03-20 10:41:10.20 spid19s         waiter-list
+2024-03-20 10:41:10.20 spid19s          waiter event=e_waitPipeNewRow id=process1e8f3c8c8

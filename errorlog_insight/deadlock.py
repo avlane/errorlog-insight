@@ -38,6 +38,12 @@ class DeadlockProcess:
         return int(self.attrs["spid"]) if self.attrs.get("spid", "").isdigit() else None
 
     @property
+    def ecid(self):
+        """Execution context: 0 is the coordinating thread, above 0 is a parallel worker."""
+        value = self.attrs.get("ecid", "")
+        return int(value) if value.isdigit() else 0
+
+    @property
     def database(self):
         return self.attrs.get("currentdbname")
 
@@ -185,7 +191,8 @@ def parse_block(entries):
                 side = "waiters"
             elif word in ("owner", "waiter") and resource is not None and "id=" in line:
                 attrs = parse_attrs(line[len(word):])
-                getattr(resource, side or word + "s").append((attrs["id"], attrs.get("mode")))
+                # lock resources say mode=, exchange events say event= instead
+                getattr(resource, side or word + "s").append((attrs["id"], attrs.get("mode") or attrs.get("event")))
             elif state == "frame" and frame is not None:
                 frame["text"] = (frame["text"] + " " + line).strip()
             elif state == "inputbuf" and process is not None:

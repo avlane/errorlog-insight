@@ -102,6 +102,10 @@ advice follows the shape of the graph: opposite lock order on key locks,
 page or row-id locks that suggest a missing index, and READ COMMITTED
 sessions that would not deadlock with READ_COMMITTED_SNAPSHOT. Error.
 
+Intra-query parallelism deadlocks (exchange events) are recognised too: the
+finding has `parallel: true`, the processes carry their `ecid`, and the advice
+is about the plan and MAXDOP instead of lock order.
+
 ## Crashes
 
 * Stack dump blocks (`stackdump.py`): the dump file path, the kind (exception,
