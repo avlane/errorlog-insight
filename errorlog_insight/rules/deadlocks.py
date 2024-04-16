@@ -7,6 +7,16 @@ LABELS.update({
     "1222": "Deadlocks (1222)",
 })
 
+MAX_STATEMENT_CHARS = 400
+
+
+def shorten(text, limit=MAX_STATEMENT_CHARS):
+    """Statements and input buffers can be many kilobytes; keep the start for reports."""
+    if text is None or len(text) <= limit:
+        return text
+    return text[:limit].rstrip() + "..."
+
+
 @block_rule(lambda entry: entry.text.strip() == "deadlock-list")
 def deadlock_rule(entries, i):
     end = deadlock_graph.collect_block(entries, i)
@@ -25,12 +35,12 @@ def summarise_deadlock(entry, dl):
     details = {
         "victims": [
             {"spid": v.spid, "login": v.login, "app": v.app, "host": v.host,
-             "procedure": v.procedure, "statement": v.statement}
+             "procedure": v.procedure, "statement": shorten(v.statement)}
             for v in victims
         ],
         "processes": [
             {"spid": p.spid, "login": p.login, "app": p.app, "host": p.host, "database": p.database,
-             "procedure": p.procedure, "statement": p.statement, "wait_resource": p.wait_resource,
+             "procedure": p.procedure, "statement": shorten(p.statement), "wait_resource": p.wait_resource,
              "isolation": p.isolation, "ecid": p.ecid}
             for p in dl.processes
         ],

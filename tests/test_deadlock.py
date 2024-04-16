@@ -1,7 +1,9 @@
 import unittest
+from datetime import datetime, timedelta
 
 from errorlog_insight.classify import classify
 from errorlog_insight.deadlock import collect_block, parse_attrs, parse_block
+from errorlog_insight.model import Entry
 from errorlog_insight.reader import read_entries
 from tests.helpers import fixture
 
@@ -68,6 +70,62 @@ class DeadlockTests(unittest.TestCase):
         self.assertEqual(f.details["victims"][0]["login"], "CONTOSO\\kwong")
         self.assertEqual(f.details["victims"][0]["host"], "DBA-WS01")
         self.assertIn("missing index", f.advice)
+
+
+def synthetic(lines, process="spid17s", start=datetime(2024, 4, 16, 9, 0, 0)):
+    return [Entry(start + timedelta(milliseconds=10 * i), process, text) for i, text in enumerate(lines)]
+
+
+GRAPH = [
+    "deadlock-list",
+    "victim-list",
+    "victimProcess id=processA",
+    "victimProcess id=processB",
+    "process-list",
+    "process id=processA spid=51 ecid=0 clientapp=app1 isolationlevel=serializable (4) currentdbname=Sales",
+    "executionStack",
+    "frame procname=Sales.dbo.p1 line=3 stmtstart=0 stmtend=10 sqlhandle=0x01",
+    "UPDATE t SET x = 1",
+    "process id=processB spid=52 ecid=0 clientapp=app2 isolationlevel=serializable (4) currentdbname=Sales",
+    "resource-list",
+    "objectlock lockPartition=0 objid=1 subresource=FULL dbid=5 objectname=Sales.dbo.T id=lock1 mode=X",
+    "owner-list",
+    "owner id=processA mode=X",
+    "waiter-list",
+    "waiter id=processB mode=X requestType=wait",
+]
+
+
+class BlockEdgeTests(unittest.TestCase):
+    def test_block_stops_at_a_line_that_is_not_part_of_the_graph(self):
+        entries = synthetic(GRAPH + ["Some later message from the same spid"])
+        self.assertEqual(collect_block(entries, 0), len(GRAPH))
+
+    def test_block_runs_to_the_end_of_the_list(self):
+        entries = synthetic(GRAPH)
+        self.assertEqual(collect_block(entries, 0), len(GRAPH))
+
+    def test_statement_text_before_the_resource_list_is_still_part_of_the_graph(self):
+        entries = synthetic(GRAPH)
+        dl = parse_block(entries)
+        self.assertEqual(dl.process("processA").statement, "UPDATE t SET x = 1")
+
+    def test_victim_list_with_two_victims(self):
+        dl = parse_block(synthetic(GRAPH))
+        self.assertEqual(dl.victims, ["processA", "processB"])
+        self.assertEqual(dl.resources[0].kind, "objectlock")
+
+    def test_long_statements_are_shortened_in_the_finding(self):
+        lines = list(GRAPH)
+        lines[8] = "UPDATE t SET x = '" + "y" * 2000 + "'"
+        (f,) = classify(synthetic(lines))
+        statement = f.details["victims"][0]["statement"]
+        self.assertEqual(len(statement), 403)
+        self.assertTrue(statement.endswith("..."))
+
+    def test_second_graph_from_the_same_spid_starts_a_new_block(self):
+        entries = synthetic(GRAPH + GRAPH)
+        self.assertEqual(len(classify(entries)), 2)
 
 
 if __name__ == "__main__":

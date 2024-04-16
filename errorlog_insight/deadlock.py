@@ -126,20 +126,36 @@ class Deadlock:
         return out
 
 
+# Lines that can appear once the resource list has started. Statement text only
+# appears earlier (under frames and inputbuf), so anything else ends the graph.
+RESOURCE_SECTION_STARTS = RESOURCE_KINDS + ("owner-list", "waiter-list", "owner", "waiter")
+
+
+def _ends_graph(line, in_resources):
+    return in_resources and line.split(" ", 1)[0] not in RESOURCE_SECTION_STARTS
+
+
 def collect_block(entries, start):
     """Return the index just past the deadlock block that starts at entries[start].
 
     The graph is written by one system spid in a burst, so the block runs until
-    another process writes, the gap grows, or the next graph starts.
+    another process writes, the gap grows, the next graph starts, or (once the
+    resource list has begun) a line shows up that cannot be part of it.
     """
     first = entries[start]
     end = start + 1
     last_time = first.timestamp
+    in_resources = False
     while end < len(entries):
         e = entries[end]
-        if e.process != first.process or e.text.strip() == "deadlock-list":
+        line = e.text.strip()
+        if e.process != first.process or line == "deadlock-list":
             break
         if (e.timestamp - last_time).total_seconds() > BLOCK_GAP_SECONDS:
+            break
+        if line == "resource-list":
+            in_resources = True
+        elif _ends_graph(line, in_resources):
             break
         last_time = e.timestamp
         end += 1
