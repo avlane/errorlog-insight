@@ -1,0 +1,11 @@
+2024-04-30 23:10:04.20 spid41s     Error: 1479, Severity: 16, State: 1.
+2024-04-30 23:10:04.20 spid41s     The mirroring connection to "TCP://SQLDR02.contoso.local:5022" has timed out for database "Sales" after 10 seconds without a response.  Check the service and network connections.
+2024-04-30 23:10:04.21 spid41s     Error: 1479, Severity: 16, State: 1.
+2024-04-30 23:10:04.21 spid41s     The mirroring connection to "TCP://SQLDR02.contoso.local:5022" has timed out for database "Reporting" after 10 seconds without a response.  Check the service and network connections.
+2024-04-30 23:10:14.93 spid35s     Error: 35206, Severity: 16, State: 1.
+2024-04-30 23:10:14.93 spid35s     A connection timeout has occurred on a previously established connection to availability replica 'SQLDR02' with id [7F8A2D11-3C4B-4E5F-9A60-1B2C3D4E5F60].  Either a networking or a firewall issue exists, or the availability replica has transitioned to the resolving role.
+2024-04-30 23:12:15.40 spid35s     Error: 35201, Severity: 16, State: 1.
+2024-04-30 23:12:15.40 spid35s     A connection timeout has occurred while attempting to establish a connection to availability replica 'SQLDR02' with id [7F8A2D11-3C4B-4E5F-9A60-1B2C3D4E5F60].  Either a networking or firewall issue exists, or the endpoint address provided for the replica is not the database mirroring endpoint of the host server instance.
+2024-04-30 23:14:16.02 spid35s     Error: 35201, Severity: 16, State: 1.
+2024-04-30 23:14:16.02 spid35s     A connection timeout has occurred while attempting to establish a connection to availability replica 'SQLDR02' with id [7F8A2D11-3C4B-4E5F-9A60-1B2C3D4E5F60].  Either a networking or firewall issue exists, or the endpoint address provided for the replica is not the database mirroring endpoint of the host server instance.
+2024-04-30 23:15:02.77 spid35s     A connection for availability group 'AG_Sales' from availability replica 'SQLPROD01' with id  [6F9619FF-8B86-D011-B42D-00C04FC964FF] to 'SQLDR02' with id [7F8A2D11-3C4B-4E5F-9A60-1B2C3D4E5F60] has been successfully established.  This is an informational message only. No user action is required.

@@ -126,6 +126,9 @@ is about the plan and MAXDOP instead of lock order.
   `reason` (the SUSPEND_FROM_* string), `by_user`. Warning when a person did
   it, error otherwise. 35265 is the resume (info).
 * 41142 replica cannot become primary (error).
+* Connectivity between replicas: 1479 mirroring endpoint timeout, 35201 cannot connect,
+  35206 connection lost (all warning, with the same network checklist) and 35202
+  connection established (info). Replica ids are upper-cased so they compare equal.
 
 ### Failover incidents
 
