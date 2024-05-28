@@ -1,0 +1,8 @@
+2024-05-14 01:12:36.10 Server      Process 0:0:0 (0x2b44) Worker 0x0000021F2C8A6160 appears to be non-yielding on Scheduler 2. Thread creation time: 13348802551310. Approx Thread CPU Used: kernel 0 ms, user 62110 ms. Process Utilization 15%. System Idle 82%. Interval: 70040 ms.
+2024-05-14 01:13:02.31 spid26s     Error: 19407, Severity: 16, State: 1.
+2024-05-14 01:13:02.31 spid26s     The lease between availability group 'AG_Sales' and the Windows Server Failover Cluster has expired.  A connectivity issue occurred between the instance of SQL Server and the Windows Server Failover Cluster. To determine whether the availability group is failing over correctly, check the corresponding availability group resource in the Windows Server Failover Cluster
+2024-05-14 01:13:02.35 spid26s     Error: 19421, Severity: 16, State: 1.
+2024-05-14 01:13:02.35 spid26s     The renewal of the lease between availability group 'AG_Sales' and the Windows Server Failover Cluster failed because the existing lease is no longer valid.
+2024-05-14 01:13:12.52 spid26s     Error: 19421, Severity: 16, State: 1.
+2024-05-14 01:13:12.52 spid26s     The renewal of the lease between availability group 'AG_Sales' and the Windows Server Failover Cluster failed because the existing lease is no longer valid.
+2024-05-14 01:14:40.80 spid44s     Always On: The availability replica manager is going offline because the local Windows Server Failover Clustering (WSFC) node has lost quorum. This is an informational message only. No user action is required.

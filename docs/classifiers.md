@@ -129,6 +129,8 @@ is about the plan and MAXDOP instead of lock order.
 * Connectivity between replicas: 1479 mirroring endpoint timeout, 35201 cannot connect,
   35206 connection lost (all warning, with the same network checklist) and 35202
   connection established (info). Replica ids are upper-cased so they compare equal.
+* Cluster: 19407 lease expired (critical), 19421 lease renewal failed (error), 41005
+  replica manager offline after quorum loss (critical).
 
 ### Failover incidents
 
