@@ -70,6 +70,47 @@ class IncidentTests(unittest.TestCase):
         self.assertEqual(find_incidents(findings(("A", "noise.log"), ("A", "io_stalls.log"))), [])
 
 
+class CauseTests(unittest.TestCase):
+    def test_lease_expiry_after_a_stall(self):
+        (inc,) = find_incidents(findings(("SQLPROD01", "ag_lease_failover.log")))
+        self.assertEqual(inc["kind"], "unplanned failover")
+        self.assertEqual([p["code"] for p in inc["precursors"]], ["17883", "19407"])
+        self.assertIn("non-yielding scheduler", inc["likely_cause"])
+
+    def test_precursors_from_another_server_count(self):
+        fs = findings(("SQLPROD01", "ag_lease_failover.log"), ("SQLDR02", "ag_connectivity.log"))
+        for f in fs:
+            if f.entry.replica == "SQLDR02":
+                for e in f.entries:
+                    e.timestamp = e.timestamp.replace(year=2024, month=5, day=14, hour=1, minute=11)
+        (inc,) = find_incidents(fs)
+        self.assertIn("SQLDR02", {p["replica"] for p in inc["precursors"]})
+
+    def test_connectivity_loss(self):
+        fs = findings(("SQLPROD01", "ag_connectivity.log"))
+        from errorlog_insight.model import Entry
+        text = ('The availability group database "Sales" is changing roles from "PRIMARY" to "RESOLVING" because the '
+                'mirroring session or availability group failed over due to automatic failover. '
+                'This is an informational message only. No user action is required.')
+        entry = Entry(datetime(2024, 4, 30, 23, 15, 30), "spid38s", text, replica="SQLPROD01")
+        (inc,) = find_incidents(fs + classify([entry]))
+        self.assertEqual(inc["likely_cause"], "the replicas lost contact with each other")
+
+    def test_precursors_outside_the_lookback_are_ignored(self):
+        fs = findings(("SQLPROD01", "ag_lease_failover.log"))
+        (inc,) = find_incidents(fs, lookback=timedelta(seconds=10))
+        self.assertEqual([p["code"] for p in inc["precursors"]], ["19407"])
+
+    def test_planned_failover_cause(self):
+        (inc,) = find_incidents(findings(("SQLPROD01", "ag_primary.log")))
+        self.assertEqual(inc["likely_cause"], "requested by a person or a script")
+
+    def test_no_precursors_no_cause(self):
+        (inc,) = find_incidents(findings(("SQLDR02", "ag_failed_failover.log")))
+        self.assertIsNone(inc["likely_cause"])
+        self.assertEqual(inc["precursors"], [])
+
+
 class IncidentReportTests(unittest.TestCase):
     def run_cli(self, *extra):
         out = io.StringIO()
@@ -95,6 +136,18 @@ class IncidentReportTests(unittest.TestCase):
         text = self.run_cli("--html")
         self.assertIn("<h2>Availability group incidents</h2>", text)
         self.assertIn("<td>planned failover</td>", text)
+
+    def test_cause_and_precursors_in_text_and_json(self):
+        out = io.StringIO()
+        main(["SQLPROD01=" + fixture("ag_lease_failover.log"), "--json"], out=out)
+        inc = json.loads(out.getvalue())["incidents"][0]
+        self.assertEqual(inc["precursors"][0]["code"], "17883")
+        self.assertEqual(inc["precursors"][0]["time"], "2024-05-14T01:12:36.100")
+        out = io.StringIO()
+        main(["SQLPROD01=" + fixture("ag_lease_failover.log")], out=out)
+        text = out.getvalue()
+        self.assertIn("likely cause: a non-yielding scheduler kept SQL Server from renewing its lease", text)
+        self.assertIn("before: 01:12:36 [SQLPROD01] Scheduler 2 non-yielding for 70 s (cpu-bound)", text)
 
     def test_skew_hint(self):
         text = self.run_cli("--offset", "SQLDR02=-30s")

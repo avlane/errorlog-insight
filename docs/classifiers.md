@@ -142,6 +142,13 @@ failover* (41142 present), *replica rejoined* or *role activity*. A negative
 "no primary" time means the clocks of the two servers differ; use `--offset`.
 Incidents are built from all findings, so `--min-severity` does not hide them.
 
+Each incident lists the precursors: non-yielding schedulers, worker starvation,
+lease and quorum messages, replica connectivity problems and memory errors from
+any given server in the five minutes before the first event. `likely_cause` is
+a one-line reading of them (a stall that expired the lease, loss of quorum,
+replicas losing contact, memory pressure) and is left empty when the logs say
+nothing.
+
 ## Startup and shutdown
 
 Startup banner (version, level, KB, build, edition, OS), ready for connections,

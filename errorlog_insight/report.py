@@ -88,6 +88,10 @@ def _incident_lines(incidents):
         lines.append("  %s  %-18s %s%s%s" % (when, inc["kind"], ", ".join(inc["ags"]) or "-", move, gap))
         if inc["databases"]:
             lines.append("      databases: %s" % ", ".join(inc["databases"]))
+        if inc["likely_cause"]:
+            lines.append("      likely cause: %s" % inc["likely_cause"])
+        for p in inc["precursors"][:5]:
+            lines.append("      before: %s [%s] %s" % (p["time"].strftime("%H:%M:%S"), p["replica"], p["title"]))
     return lines
 
 
@@ -174,7 +178,8 @@ def burst_to_dict(b):
 
 
 def incident_to_dict(inc):
-    return dict(inc, start=_iso(inc["start"]), end=_iso(inc["end"]))
+    return dict(inc, start=_iso(inc["start"]), end=_iso(inc["end"]),
+                precursors=[dict(p, time=_iso(p["time"])) for p in inc["precursors"]])
 
 
 def render_json(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False, incidents=()):
