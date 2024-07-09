@@ -2,6 +2,8 @@
 import collections
 import json
 
+from . import __version__
+
 from .classify import LABELS
 from .cluster import cluster_entries
 from .model import severity_rank
@@ -9,6 +11,7 @@ from .summaries import io_summary, login_summary
 from .timeline import timeline_lines
 
 ADVICE_LIMIT = 10
+SCHEMA_VERSION = 1  # bumped when a field is removed or changes meaning; new fields do not bump it
 
 
 def _span(entries):
@@ -187,6 +190,8 @@ def render_json(entries, findings, files=(), unknown=(), top=10, bursts=(), time
     first = min((e.timestamp for e in entries), default=None)
     last = max((e.timestamp for e in entries), default=None)
     doc = {
+        "schema_version": SCHEMA_VERSION,
+        "tool": {"name": "errorlog-insight", "version": __version__},
         "files": list(files),
         "entries": len(entries),
         "period": {"first": _iso(first) if first else None, "last": _iso(last) if last else None},

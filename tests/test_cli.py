@@ -77,6 +77,24 @@ class OptionTests(unittest.TestCase):
         self.assertEqual(first["timestamp"], "2021-04-06T02:14:11.120")
         self.assertEqual(doc["period"]["first"], "2021-04-06T01:00:00.120")
 
+    def test_schema_header(self):
+        _, text = run("io_stalls.log", extra=["--json"])
+        doc = json.loads(text)
+        self.assertEqual(doc["schema_version"], 1)
+        self.assertEqual(doc["tool"]["name"], "errorlog-insight")
+        self.assertRegex(doc["tool"]["version"], r"^\d+\.\d+\.\d+$")
+
+    def test_documented_keys_match_the_output(self):
+        _, text = run("login_failures.log", "ag_primary.log", extra=["--json"])
+        doc = json.loads(text)
+        path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "docs", "json-format.md")
+        with open(path, encoding="utf-8") as f:
+            documented = f.read()
+        for key in doc:
+            self.assertIn("`%s`" % key, documented)
+        for key in doc["findings"][0]:
+            self.assertIn('"%s"' % key, documented)
+
     def test_json_for_empty_log(self):
         _, text = run("noise.log", extra=["--json"])
         doc = json.loads(text)

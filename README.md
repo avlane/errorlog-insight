@@ -31,7 +31,8 @@ to look at next. Files can be the real UTF-16 ERRORLOG, a grid saved from
 
 Options:
 
-* `--json` writes the same findings as JSON (one object per finding with its details).
+* `--json` writes the same findings as JSON (one object per finding with its details); the
+  format is described in [docs/json-format.md](docs/json-format.md).
 * `--html` writes one self-contained HTML page (inline CSS, no scripts, light and dark),
   with every finding expandable to show what was extracted from it.
 * `-o FILE` writes the report to FILE as UTF-8. (Standard output is switched to UTF-8
