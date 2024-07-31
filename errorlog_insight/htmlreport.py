@@ -4,7 +4,7 @@ import json
 
 from .classify import LABELS
 from .cluster import cluster_entries
-from .model import severity_rank
+from .model import SEVERITIES, severity_rank
 from .report import group_findings
 from .summaries import io_summary, login_summary
 from .timeline import default_label
@@ -35,8 +35,23 @@ summary { cursor: pointer; }
 dl.kv { display: grid; grid-template-columns: max-content 1fr; gap: .15rem 1rem; margin: .5rem 0; }
 dl.kv dt { color: var(--muted); } dl.kv dd { margin: 0; overflow-wrap: anywhere; }
 code { font: 13px ui-monospace, monospace; }
+.filters-wrap > input { position: absolute; opacity: 0; pointer-events: none; }
+.filters { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin: .5rem 0 1rem; }
+.filters label { border: 1px solid var(--line); border-radius: 999px; padding: .1rem .75rem; cursor: pointer; background: var(--card); }
+.filters label.sev-info { color: var(--info); } .filters label.sev-warning { color: var(--warning); }
+.filters label.sev-error { color: var(--error); } .filters label.sev-critical { color: var(--critical); }
 @media (max-width: 40rem) { dl.kv { grid-template-columns: 1fr; } }
 """
+
+
+def _filter_css():
+    """Show/hide findings by severity with checkboxes only (no script)."""
+    rules = []
+    for name in SEVERITIES:
+        rules.append("#show-%s:checked ~ .filters label[for=show-%s] { border-color: currentColor; font-weight: 600; }" % (name, name))
+        rules.append("#show-%s:focus-visible ~ .filters label[for=show-%s] { outline: 2px solid currentColor; outline-offset: 2px; }" % (name, name))
+        rules.append("#show-%s:not(:checked) ~ .findings details.sev-%s { display: none; }" % (name, name))
+    return "\n".join(rules)
 
 
 def esc(value):
@@ -69,7 +84,7 @@ def _finding_html(f):
 def render_html(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False, incidents=()):
     out = ['<!doctype html>', '<html lang="en">', '<head>', '<meta charset="utf-8">',
            '<meta name="viewport" content="width=device-width, initial-scale=1">',
-           "<title>errorlog-insight report</title>", "<style>%s</style>" % CSS, "</head>", "<body>",
+           "<title>errorlog-insight report</title>", "<style>%s%s</style>" % (CSS, _filter_css()), "</head>", "<body>",
            "<h1>errorlog-insight report</h1>"]
     if entries:
         first = min(e.timestamp for e in entries)
@@ -89,8 +104,18 @@ def render_html(entries, findings, files=(), unknown=(), top=10, bursts=(), time
                 esc(code), esc(LABELS.get(code, code)), len(items), esc(worst), esc(worst)))
         out.append("</table>")
         out.append("<h2>Findings</h2>")
+        # pure CSS filter: the checkboxes come first so ~ can reach the findings after them
+        out.append('<div class="filters-wrap">')
+        for name in SEVERITIES:
+            out.append('<input type="checkbox" id="show-%s" checked>' % name)
+        out.append('<div class="filters" role="group" aria-label="Show findings of severity">')
+        for name in SEVERITIES:
+            out.append('<label for="show-%s" class="sev-%s">%s</label>' % (name, name, name))
+        out.append("</div>")
+        out.append('<div class="findings">')
         ranked = sorted(findings, key=lambda f: (-severity_rank(f.severity), f.entry.timestamp))
         out.extend(_finding_html(f) for f in ranked)
+        out.append("</div></div>")
     else:
         out.append("<p>Nothing recognised.</p>")
 

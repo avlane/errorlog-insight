@@ -71,6 +71,19 @@ class HtmlTests(unittest.TestCase):
         text = render_html([entry], [], unknown=[entry])
         self.assertIn("&lt;b&gt;odd&lt;/b&gt;", text)
 
+    def test_severity_filters_are_pure_css(self):
+        text = render("io_stalls.log")
+        for name in ("info", "warning", "error", "critical"):
+            self.assertIn('<input type="checkbox" id="show-%s" checked>' % name, text)
+            self.assertIn("#show-%s:not(:checked) ~ .findings details.sev-%s { display: none; }" % (name, name), text)
+        self.assertIn('<label for="show-error" class="sev-error">error</label>', text)
+        self.assertEqual(text.count('<div class="findings">'), 1)
+
+    def test_filter_inputs_come_before_the_findings(self):
+        text = render("io_stalls.log")
+        self.assertLess(text.index('id="show-info"'), text.index('<div class="findings">'))
+        self.assertLess(text.index('<div class="filters"'), text.index('<div class="findings">'))
+
     def test_empty_report(self):
         text = render("noise.log")
         self.assertIn("Nothing recognised.", text)
