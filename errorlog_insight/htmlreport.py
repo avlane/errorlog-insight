@@ -40,6 +40,11 @@ code { font: 13px ui-monospace, monospace; }
 .filters label { border: 1px solid var(--line); border-radius: 999px; padding: .1rem .75rem; cursor: pointer; background: var(--card); }
 .filters label.sev-info { color: var(--info); } .filters label.sev-warning { color: var(--warning); }
 .filters label.sev-error { color: var(--error); } .filters label.sev-critical { color: var(--critical); }
+svg.activity { width: 100%; height: auto; max-height: 7rem; display: block; }
+svg.activity text { fill: var(--muted); font: 10px system-ui, sans-serif; }
+svg.activity .axis { stroke: var(--line); stroke-width: 1; }
+svg.activity .bar-info { fill: var(--info); } svg.activity .bar-warning { fill: var(--warning); }
+svg.activity .bar-error { fill: var(--error); } svg.activity .bar-critical { fill: var(--critical); }
 @media (max-width: 40rem) { dl.kv { grid-template-columns: 1fr; } }
 """
 
@@ -52,6 +57,48 @@ def _filter_css():
         rules.append("#show-%s:focus-visible ~ .filters label[for=show-%s] { outline: 2px solid currentColor; outline-offset: 2px; }" % (name, name))
         rules.append("#show-%s:not(:checked) ~ .findings details.sev-%s { display: none; }" % (name, name))
     return "\n".join(rules)
+
+
+ACTIVITY_BUCKETS = 60
+ACTIVITY_WIDTH = 600
+ACTIVITY_HEIGHT = 70
+
+
+def activity_svg(findings, buckets=ACTIVITY_BUCKETS):
+    """Bar chart of findings over time as inline SVG; each bar takes the colour of its worst finding.
+
+    Returns "" when there is nothing to draw (no findings, or all at one instant).
+    """
+    if not findings:
+        return ""
+    first = min(f.entry.timestamp for f in findings)
+    last = max(f.entry.timestamp for f in findings)
+    span = (last - first).total_seconds()
+    if span <= 0:
+        return ""
+    counts = [0] * buckets
+    worst = [0] * buckets
+    for f in findings:
+        i = min(buckets - 1, int((f.entry.timestamp - first).total_seconds() / span * buckets))
+        counts[i] += 1
+        worst[i] = max(worst[i], severity_rank(f.severity))
+    peak = max(counts)
+    width = ACTIVITY_WIDTH / float(buckets)
+    parts = ['<svg class="activity" viewBox="0 0 %d %d" role="img" aria-labelledby="activity-title">' % (
+        ACTIVITY_WIDTH, ACTIVITY_HEIGHT + 16),
+        '<title id="activity-title">Findings over time: %d findings, at most %d in one of %d equal periods</title>' % (
+            len(findings), peak, buckets)]
+    for i, count in enumerate(counts):
+        if not count:
+            continue
+        height = max(3.0, ACTIVITY_HEIGHT * count / float(peak))
+        parts.append('<rect class="bar-%s" x="%.2f" y="%.2f" width="%.2f" height="%.2f"><title>%d finding(s)</title></rect>' % (
+            SEVERITIES[worst[i]], i * width + 0.5, ACTIVITY_HEIGHT - height, max(width - 1, 1), height, count))
+    parts.append('<line class="axis" x1="0" y1="%d" x2="%d" y2="%d"/>' % (ACTIVITY_HEIGHT, ACTIVITY_WIDTH, ACTIVITY_HEIGHT))
+    parts.append('<text x="0" y="%d">%s</text>' % (ACTIVITY_HEIGHT + 12, esc(_time(first))))
+    parts.append('<text x="%d" y="%d" text-anchor="end">%s</text>' % (ACTIVITY_WIDTH, ACTIVITY_HEIGHT + 12, esc(_time(last))))
+    parts.append("</svg>")
+    return "".join(parts)
 
 
 def esc(value):
@@ -97,6 +144,9 @@ def render_html(entries, findings, files=(), unknown=(), top=10, bursts=(), time
         out.append('<p class="muted">%s</p>' % ", ".join(esc(f) for f in files))
 
     if findings:
+        chart = activity_svg(findings)
+        if chart:
+            out.append("<h2>Activity</h2>" + chart)
         out.append("<h2>Findings by type</h2><table><tr><th>Code</th><th>Type</th><th>Count</th><th>Worst</th></tr>")
         for code, items in group_findings(findings):
             worst = max(items, key=lambda f: severity_rank(f.severity)).severity

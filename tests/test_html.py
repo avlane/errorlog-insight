@@ -1,11 +1,12 @@
 import io
+import re
 import unittest
 from datetime import datetime
 from html.parser import HTMLParser
 
 from errorlog_insight.classify import classify, unclassified
 from errorlog_insight.cli import main
-from errorlog_insight.htmlreport import esc, render_html
+from errorlog_insight.htmlreport import activity_svg, esc, render_html
 from errorlog_insight.model import Entry
 from errorlog_insight.reader import read_entries
 from tests.helpers import fixture
@@ -83,6 +84,32 @@ class HtmlTests(unittest.TestCase):
         text = render("io_stalls.log")
         self.assertLess(text.index('id="show-info"'), text.index('<div class="findings">'))
         self.assertLess(text.index('<div class="filters"'), text.index('<div class="findings">'))
+
+    def test_activity_chart(self):
+        text = render("io_stalls.log", "login_failures.log")
+        self.assertIn("<h2>Activity</h2>", text)
+        self.assertIn('<svg class="activity"', text)
+        self.assertIn('class="bar-error"', text)
+        self.assertIn("2021-03-02 07:55:10", text)
+
+    def test_activity_bars_are_scaled_to_the_busiest_period(self):
+        entries = read_entries(fixture("login_failures.log"))
+        svg = activity_svg(classify(entries), buckets=10)
+        heights = [float(h) for h in re.findall(r'<rect[^>]* height="([\d.]+)"', svg)]
+        self.assertEqual(max(heights), 70.0)
+        self.assertGreaterEqual(min(heights), 3.0)
+
+    def test_activity_chart_skipped_for_a_single_instant(self):
+        entry = Entry(datetime(2024, 8, 20, 10, 0), "Logon",
+                      "Login failed for user 'a'. Reason: Password did not match that for the login provided. [CLIENT: 1.1.1.1]")
+        findings = classify([entry])
+        self.assertEqual(activity_svg(findings), "")
+        self.assertNotIn("<h2>Activity</h2>", render_html([entry], findings))
+
+    def test_activity_chart_has_no_scripts_or_external_references(self):
+        svg = activity_svg(classify(read_entries(fixture("io_stalls.log"))))
+        self.assertNotIn("<script", svg)
+        self.assertNotIn("href", svg)
 
     def test_empty_report(self):
         text = render("noise.log")
