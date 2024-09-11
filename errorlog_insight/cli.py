@@ -9,6 +9,7 @@ from .config import ConfigError, load_settings
 from .htmlreport import render_html
 from .incidents import find_incidents
 from .reader import read_entries
+from .timefilter import in_window, parse_when
 from .timeline import apply_offset, merge_entries, merge_findings, parse_offset, parse_source
 from .model import SEVERITIES, severity_rank
 from .report import render_json, render_text
@@ -33,6 +34,9 @@ def build_parser():
                    help="fewest events in one bucket that can count as a burst (default: 5)")
     p.add_argument("--burst-factor", type=float, default=None, metavar="X",
                    help="how many times the recent average a bucket must reach (default: 3)")
+    p.add_argument("--since", metavar="WHEN",
+                   help="ignore entries before this time, for example 2024-05-14 or 2024-05-14T01:30")
+    p.add_argument("--until", metavar="WHEN", help="ignore entries from this time on (exclusive)")
     p.add_argument("--offset", action="append", default=[], metavar="LABEL=+2s",
                    help="shift one server's timestamps to correct clock skew, for example SQLDR02=-1.5s "
                         "(units: ms, s, m, h; repeatable)")
@@ -68,6 +72,13 @@ def main(argv=None, out=None):
     except ValueError as exc:
         sys.stderr.write("errorlog-insight: %s\n" % exc)
         return 2
+    try:
+        since = parse_when(args.since) if args.since else None
+        until = parse_when(args.until) if args.until else None
+        in_window([], since, until)  # validates the pair
+    except ValueError as exc:
+        sys.stderr.write("errorlog-insight: %s\n" % exc)
+        return 2
     per_file = []
     all_findings, unknown = [], []
     paths = []
@@ -77,6 +88,7 @@ def main(argv=None, out=None):
         entries = read_entries(path, replica=label)
         if label in offsets:
             apply_offset(entries, offsets.pop(label))
+        entries = in_window(entries, since, until)
         found = classify(entries)
         per_file.append(entries)
         all_findings.extend(found)

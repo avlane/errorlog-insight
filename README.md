@@ -43,6 +43,9 @@ Options:
   events of one kind, and X times the average of the previous 30 minutes, is reported as a burst.
 * Give a file a name with `LABEL=FILE`, for example `SQLPROD01=ERRORLOG SQLDR02=dr02/ERRORLOG.1`;
   the label is used as the replica in merged output (the default is the file name).
+* `--since WHEN` and `--until WHEN` keep only the entries in a window (`2024-05-14`,
+  `2024-05-14 01:30`, `2024-05-14T01:30:15`; `--until` is exclusive). The window is applied
+  before anything is classified.
 * `--offset LABEL=+2s` shifts one server's timestamps (units `ms`, `s`, `m`, `h`) when its clock
   is off, so the merged order of a failover is right.
 * `--timeline` lists the findings of all given files (for example the logs of both AG
