@@ -31,6 +31,8 @@ to look at next. Files can be the real UTF-16 ERRORLOG, a grid saved from
 
 Options:
 
+* `--format text|json|html` picks the report (default text; with `-o` the file extension decides).
+  `--json` and `--html` are shorthands.
 * `--json` writes the same findings as JSON (one object per finding with its details); the
   format is described in [docs/json-format.md](docs/json-format.md).
 * `--html` writes one self-contained HTML page (inline CSS, no scripts, light and dark),

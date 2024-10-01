@@ -131,6 +131,42 @@ class EntryPointTests(unittest.TestCase):
         self.assertIn("errorlog-insight", out.getvalue())
 
 
+class FormatTests(unittest.TestCase):
+    def test_format_option(self):
+        _, text = run("noise.log", extra=["--format", "json"])
+        self.assertEqual(json.loads(text)["schema_version"], 1)
+        _, text = run("noise.log", extra=["--format", "html"])
+        self.assertTrue(text.startswith("<!doctype html>"))
+        _, text = run("noise.log", extra=["--format", "text"])
+        self.assertTrue(text.startswith("errorlog-insight report"))
+
+    def test_aliases_still_work(self):
+        _, text = run("noise.log", extra=["--json"])
+        self.assertIn("schema_version", text)
+        _, text = run("noise.log", extra=["--html"])
+        self.assertTrue(text.startswith("<!doctype html>"))
+
+    def test_extension_picks_the_format(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            for name, expected in (("r.json", "{"), ("r.html", "<!doctype html>"), ("r.HTM", "<!doctype html>"),
+                                   ("r.txt", "errorlog-insight report"), ("r", "errorlog-insight report")):
+                target = os.path.join(tmp, name)
+                main([fixture("noise.log"), "-o", target])
+                with open(target, encoding="utf-8") as f:
+                    self.assertTrue(f.read().startswith(expected), name)
+
+    def test_explicit_format_beats_the_extension(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = os.path.join(tmp, "r.json")
+            main([fixture("noise.log"), "-o", target, "--format", "html"])
+            with open(target, encoding="utf-8") as f:
+                self.assertTrue(f.read().startswith("<!doctype html>"))
+
+    def test_unknown_format_is_rejected(self):
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            main([fixture("noise.log"), "--format", "xml"], out=io.StringIO())
+
+
 class OutputFileTests(unittest.TestCase):
     def make_log(self, directory, text):
         path = os.path.join(directory, "ERRORLOG")

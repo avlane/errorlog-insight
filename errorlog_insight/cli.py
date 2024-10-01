@@ -1,5 +1,6 @@
 """Command line entry point."""
 import argparse
+import os
 import sys
 
 from . import __version__
@@ -15,6 +16,20 @@ from .model import SEVERITIES, severity_rank
 from .report import render_json, render_text
 
 
+FORMATS = ("text", "json", "html")
+EXTENSION_FORMATS = {".json": "json", ".html": "html", ".htm": "html"}
+RENDERERS = {"text": render_text, "json": render_json, "html": render_html}
+
+
+def choose_format(args):
+    """--format wins; otherwise the extension of -o decides; otherwise text."""
+    if args.format:
+        return args.format
+    if args.output:
+        return EXTENSION_FORMATS.get(os.path.splitext(args.output)[1].lower(), "text")
+    return "text"
+
+
 def build_parser():
     p = argparse.ArgumentParser(
         prog="errorlog-insight",
@@ -23,9 +38,10 @@ def build_parser():
     p.add_argument("files", nargs="+", metavar="[LABEL=]FILE",
                    help="ERRORLOG files (UTF-16 LE) or saved sp_readerrorlog output; "
                         "a LABEL (for example SQLDR02=ERRORLOG.1) names the server in merged output")
-    fmt = p.add_mutually_exclusive_group()
-    fmt.add_argument("--json", action="store_true", help="write JSON instead of text")
-    fmt.add_argument("--html", action="store_true", help="write a self-contained HTML report instead of text")
+    p.add_argument("--format", choices=FORMATS, default=None,
+                   help="report format (default: text, or guessed from the -o file extension)")
+    p.add_argument("--json", dest="format", action="store_const", const="json", help="same as --format json")
+    p.add_argument("--html", dest="format", action="store_const", const="html", help="same as --format html")
     p.add_argument("--min-severity", choices=SEVERITIES, default=None,
                    help="hide findings below this severity (default: info)")
     p.add_argument("--top", type=int, default=None, metavar="N",
@@ -101,7 +117,7 @@ def main(argv=None, out=None):
     findings = merge_findings([f for f in all_findings if severity_rank(f.severity) >= floor])
     bursts = find_bursts(findings, settings.bursts)
     incidents = find_incidents(all_findings)  # planned failovers are info, so use the unfiltered findings
-    render = render_json if args.json else render_html if args.html else render_text
+    render = RENDERERS[choose_format(args)]
     report = render(entries, findings, paths, unknown=unknown, top=settings.top, bursts=bursts,
                     timeline=args.timeline, incidents=incidents)
     if args.output:
