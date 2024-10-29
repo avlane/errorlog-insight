@@ -57,21 +57,33 @@ def _timestamp(m):
     return datetime(year, month, day, hour, minute, second, micro)
 
 
-def parse_entries(text, source="", replica=""):
-    """Split decoded log text into Entry objects."""
-    entries = []
+def iter_line_entries(lines, source="", replica=""):
+    """Yield Entry objects from an iterable of physical lines, one entry at a time.
+
+    The text of an entry is assembled when the next entry starts, so a file is
+    never needed in memory all at once.
+    """
     current = None
-    for lineno, line in enumerate(text.splitlines(), 1):
-        line = line.replace("\x00", "")
+    parts = None
+    for lineno, line in enumerate(lines, 1):
+        line = line.rstrip("\r\n").replace("\x00", "")
         m = LINE_RE.match(line)
         if m:
-            current = Entry(_timestamp(m), m.group(8), m.group(9) or "", source, lineno, replica)
-            entries.append(current)
+            if current is not None:
+                current.text = "\n".join(parts).rstrip()
+                yield current
+            parts = [m.group(9) or ""]
+            current = Entry(_timestamp(m), m.group(8), "", source, lineno, replica)
         elif current is not None:
-            current.text += "\n" + line
-    for entry in entries:
-        entry.text = entry.text.rstrip()
-    return entries
+            parts.append(line)
+    if current is not None:
+        current.text = "\n".join(parts).rstrip()
+        yield current
+
+
+def parse_entries(text, source="", replica=""):
+    """Split decoded log text into Entry objects."""
+    return list(iter_line_entries(text.splitlines(), source, replica))
 
 
 # Column names of the two saved-grid layouts: sp_readerrorlog and the SSMS Log File Viewer.
@@ -137,15 +149,53 @@ def parse_readerrorlog(text, source="", replica=""):
     return entries
 
 
+SNIFF_BYTES = 64 * 1024
+
+
+def _choose_encoding(head):
+    """Encoding and number of bytes to skip (the BOM) for a file that starts with `head`."""
+    if head.startswith(codecs.BOM_UTF16_LE):
+        return "utf-16-le", 2
+    if head.startswith(codecs.BOM_UTF16_BE):
+        return "utf-16-be", 2
+    if head.startswith(codecs.BOM_UTF8):
+        return "utf-8", 3
+    if _looks_like_utf16_le(head):
+        return "utf-16-le", 0
+    try:
+        head.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        if exc.start < len(head) - 4:  # a character cut off at the end of the sample does not count
+            return "cp1252", 0
+    return "utf-8", 0
+
+
+def iter_entries(path, replica=""):
+    """Read an ERRORLOG file entry by entry, without loading the whole file.
+
+    Saved grids (sp_readerrorlog, Log File Viewer) are small and need the csv
+    module, so those are read in one go.
+    """
+    with open(path, "rb") as raw:
+        head = raw.read(SNIFF_BYTES)
+        encoding, skip = _choose_encoding(head)
+        sample = head[skip:].decode(encoding, errors="replace")
+        if looks_like_readerrorlog(sample):
+            raw.seek(skip)
+            text = raw.read().decode(encoding, errors="replace")
+            for entry in parse_readerrorlog(text, source=str(path), replica=replica):
+                yield entry
+            return
+        raw.seek(skip)
+        with io.TextIOWrapper(raw, encoding=encoding, errors="replace", newline=None) as lines:
+            for entry in iter_line_entries(lines, source=str(path), replica=replica):
+                yield entry
+
+
 def read_entries(path, replica=""):
     """Read an ERRORLOG file (or saved sp_readerrorlog output) from disk.
 
     `replica` is a free label (server name) stored on every entry, so entries
     from several servers can be told apart after they are merged.
     """
-    with open(path, "rb") as f:
-        data = f.read()
-    text = decode(data)
-    if looks_like_readerrorlog(text):
-        return parse_readerrorlog(text, source=str(path), replica=replica)
-    return parse_entries(text, source=str(path), replica=replica)
+    return list(iter_entries(path, replica))

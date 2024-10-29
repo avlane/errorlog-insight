@@ -74,6 +74,18 @@ Recognised so far:
 | Availability groups | 1480 role changes, 19406 replica state, 35264/35265 data movement, 41142 |
 | Lifecycle | startup banner, ready, shutdown, recovery progress |
 
+## Using it as a library
+
+```python
+from errorlog_insight.reader import iter_entries, read_entries
+from errorlog_insight.classify import classify
+
+for entry in iter_entries("ERRORLOG.1"):      # lazy: one entry at a time
+    print(entry.timestamp, entry.process, entry.first_line)
+
+findings = classify(read_entries("ERRORLOG.1"))  # classification needs the entries as a list
+```
+
 ## Config file
 
 `--config FILE` reads defaults for `--top`, `--min-severity` and the burst options from
