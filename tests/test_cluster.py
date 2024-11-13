@@ -25,6 +25,20 @@ class MaskTests(unittest.TestCase):
         self.assertEqual(mask("Opened C:\\Data\\x.mdf ok"), "Opened <PATH> ok")
         self.assertEqual(mask("Opened \\\\FILESRV01\\Share\\x.bak ok"), "Opened <PATH> ok")
 
+    def test_sids_accounts_dates_and_times(self):
+        text = "Mapped S-1-5-21-3623811015-3361044348-30300820-1013 for CONTOSO\\jdoe at 2024-11-12 10:11:12.345"
+        self.assertEqual(mask(text), "Mapped <SID> for <ACCOUNT> at <DATE> <TIME>")
+
+    def test_lsns_and_spids(self):
+        self.assertEqual(mask("Log restored to 00000a2b:00001c3d:0001 and 120987:44321:37 by spid57s"),
+                         "Log restored to <LSN> and <LSN> by <SPID>")
+
+    def test_a_clock_time_is_not_an_lsn(self):
+        self.assertEqual(mask("Started at 10:11:12"), "Started at <TIME>")
+
+    def test_unc_path_is_not_taken_for_an_account(self):
+        self.assertEqual(mask("Backup to \\\\FILESRV01\\Share\\a.bak by CONTOSO\\svc_sql"), "Backup to <PATH> by <ACCOUNT>")
+
     def test_only_first_line_is_used(self):
         self.assertEqual(mask("FlushCache: cleaned up 5 bufs\n\t\t\taverage throughput: 1 MB/sec"),
                          "FlushCache: cleaned up <NUM> bufs")
