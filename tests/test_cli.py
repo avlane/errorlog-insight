@@ -44,6 +44,14 @@ class CliTests(unittest.TestCase):
         self.assertIn("Unrecognised messages (10 entries, 8 templates)", text)
         self.assertIn("x2    Configuration option '<STR>' changed from <NUM> to <NUM>.", text)
 
+    def test_unrecognised_section_shows_when_and_where(self):
+        _, text = run("noise.log")
+        section = text.split("Unrecognised messages")[1].splitlines()
+        # x2 "Using ..." messages from spid53 and spid57
+        self.assertIn("2021-09-14 06:10:44 .. 06:12:01  spid53, spid57", section[2])
+        self.assertIn("2021-09-14 07:00:00 .. 07:00:00  spid62", text)
+        self.assertIn("2021-09-14 06:00:02  Server\n", text)
+
     def test_top_limits_templates(self):
         _, text = run("noise.log", extra=["--top", "3"])
         self.assertIn("... and 5 more templates", text)
@@ -100,6 +108,7 @@ class OptionTests(unittest.TestCase):
         doc = json.loads(text)
         self.assertEqual(doc["findings"], [])
         self.assertEqual(doc["unrecognised"][0]["count"], 2)
+        self.assertEqual(doc["unrecognised"][0]["variants"], 1)
         self.assertEqual(len(doc["unrecognised"]), 8)
 
     def test_min_severity_hides_info(self):

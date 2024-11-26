@@ -139,6 +139,12 @@ def _unrecognised_lines(unknown, top):
     lines = ["", "Unrecognised messages (%d entries, %d templates)" % (len(unknown), len(clusters))]
     for c in clusters[:top]:
         lines.append("  x%-4d %s" % (c.count, c.template))
+        seen = c.first_seen.strftime("%Y-%m-%d %H:%M:%S")
+        if c.last_seen != c.first_seen:
+            seen += " .. " + (c.last_seen.strftime("%H:%M:%S") if c.last_seen.date() == c.first_seen.date()
+                              else c.last_seen.strftime("%Y-%m-%d %H:%M:%S"))
+        more = ", %d variants" % c.variants if c.variants > 1 else ""
+        lines.append("        %s  %s%s" % (seen, ", ".join(sorted(c.processes)), more))
     if len(clusters) > top:
         lines.append("  ... and %d more templates" % (len(clusters) - top))
     return lines
@@ -171,6 +177,7 @@ def cluster_to_dict(c):
         "first_seen": _iso(c.first_seen),
         "last_seen": _iso(c.last_seen),
         "processes": sorted(c.processes),
+        "variants": c.variants,
         "sample": c.sample.first_line,
     }
 
