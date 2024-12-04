@@ -1,0 +1,6 @@
+2024-12-02 10:02:11.40 spid53      DBCC TRACEON 1222, server process ID (SPID) 53. This is an informational message only; no user action is required.
+2024-12-02 10:02:11.41 spid53      DBCC TRACEON 3605, server process ID (SPID) 53. This is an informational message only; no user action is required.
+2024-12-02 10:45:30.12 spid53      DBCC TRACEOFF 3605, server process ID (SPID) 53. This is an informational message only; no user action is required.
+2024-12-02 11:10:00.01 spid61      DBCC TRACEON 4199, server process ID (SPID) 61. This is an informational message only; no user action is required.
+2024-12-02 11:10:00.02 spid61      DBCC TRACEON 9999, server process ID (SPID) 61. This is an informational message only; no user action is required.
+2024-12-02 17:30:10.77 spid53      DBCC TRACEOFF 1222, server process ID (SPID) 53. This is an informational message only; no user action is required.

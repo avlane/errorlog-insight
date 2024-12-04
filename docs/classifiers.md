@@ -149,6 +149,12 @@ a one-line reading of them (a stall that expired the lease, loss of quorum,
 replicas losing contact, memory pressure) and is left empty when the logs say
 nothing.
 
+## Trace flags
+
+`DBCC TRACEON` and `TRACEOFF` messages (info): the flags, whether they went on
+or off, the spid and what each known flag does (1222, 3605, 4199, ... and a few
+more). Turning 3605 on gets a reminder that output goes to the error log.
+
 ## Startup and shutdown
 
 Startup banner (version, level, KB, build, edition, OS), ready for connections,
