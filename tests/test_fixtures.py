@@ -20,5 +20,14 @@ class FixtureSyncTests(unittest.TestCase):
                 self.assertEqual(f.read(), expected, name)
 
 
+class FixtureIndexTests(unittest.TestCase):
+    def test_every_fixture_is_described_in_the_readme(self):
+        with open(os.path.join(FIXTURES, "README.md"), encoding="utf-8") as f:
+            readme = f.read()
+        for name in sorted(os.listdir(FIXTURES)):
+            if name.endswith((".log", ".tsv", ".csv")):
+                self.assertIn(os.path.splitext(name)[0], readme, name)
+
+
 if __name__ == "__main__":
     unittest.main()
