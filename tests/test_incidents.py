@@ -66,6 +66,21 @@ class IncidentTests(unittest.TestCase):
         self.assertTrue(inc["clock_skew_suspected"])
         self.assertLess(inc["no_primary_seconds"], 0)
 
+    def test_database_mirroring_role_changes_are_not_ag_incidents(self):
+        text = ('The mirroring database "Legacy" is changing roles from "PRINCIPAL" to "MIRROR" because the mirroring '
+                'session or availability group failed over due to manual failover. '
+                'This is an informational message only. No user action is required.')
+        from errorlog_insight.model import Entry
+        found = classify([Entry(datetime(2024, 12, 17, 3, 0), "spid30s", text)])
+        self.assertEqual(found[0].code, "1480")
+        self.assertEqual(found[0].details["feature"], "mirroring")
+        self.assertEqual(find_incidents(found), [])
+
+    def test_availability_group_role_changes_say_so(self):
+        found = classify(read_entries(fixture("ag_primary.log")))
+        features = {f.details["feature"] for f in found if f.code == "1480"}
+        self.assertEqual(features, {"availability group"})
+
     def test_nothing_to_report(self):
         self.assertEqual(find_incidents(findings(("A", "noise.log"), ("A", "io_stalls.log"))), [])
 

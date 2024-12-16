@@ -44,7 +44,8 @@ def role_change(entry, ctx):
     reason = m.group("reason")
     old, new = m.group("old"), m.group("new")
     planned = "manual" in reason or "role synchronization" in reason
-    details = {"database": m.group("db"), "old_role": old, "new_role": new, "reason": reason, "planned": planned}
+    details = {"database": m.group("db"), "old_role": old, "new_role": new, "reason": reason, "planned": planned,
+               "feature": m.group("kind")}
     severity = "info" if planned else "warning"
     if new == "RESOLVING" and not planned:
         advice = "An unplanned loss of the role: check the WSFC cluster log, quorum and the network between replicas."

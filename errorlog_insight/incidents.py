@@ -17,6 +17,11 @@ PRECURSOR_CODES = ("17883", "17884", "19407", "19421", "41005", "35206", "35201"
 LOOKBACK = timedelta(minutes=5)
 
 
+def _is_mirroring(finding):
+    """1480 is written for database mirroring as well; those are not availability group incidents."""
+    return finding.code == "1480" and finding.details.get("feature") == "mirroring"
+
+
 def _label(finding):
     return finding.entry.replica or finding.entry.source or "unknown"
 
@@ -28,7 +33,7 @@ def find_incidents(findings, gap=INCIDENT_GAP, lookback=LOOKBACK):
     `lookback` period before the first event, and `likely_cause` is a one-line
     reading of them.
     """
-    events = [f for f in merge_findings(findings) if f.code in INCIDENT_CODES]
+    events = [f for f in merge_findings(findings) if f.code in INCIDENT_CODES and not _is_mirroring(f)]
     groups = []
     for f in events:
         if groups and f.entry.timestamp - groups[-1][-1].entry.timestamp <= gap:
