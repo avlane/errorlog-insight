@@ -20,7 +20,7 @@ class CliTests(unittest.TestCase):
     def test_summary_of_one_file(self):
         code, text = run("io_stalls.log")
         self.assertEqual(code, 0)
-        self.assertIn("Findings: 7", text)
+        self.assertIn("Findings: 11", text)
         self.assertIn("Slow I/O (833)", text)
         self.assertIn("x7", text)
 
@@ -33,7 +33,7 @@ class CliTests(unittest.TestCase):
         _, text = run("login_failures.log", "io_stalls.log")
         self.assertIn("Login failures", text)
         self.assertIn("Slow I/O (833)", text)
-        self.assertIn("Findings: 22", text)
+        self.assertIn("Findings: 26", text)
 
     def test_nothing_recognised(self):
         _, text = run("noise.log")
@@ -78,8 +78,8 @@ class OptionTests(unittest.TestCase):
         doc = json.loads(text)
         self.assertEqual(code, 0)
         self.assertEqual(doc["entries"], 11)
-        self.assertEqual(len(doc["findings"]), 7)
-        first = doc["findings"][0]
+        self.assertEqual(len(doc["findings"]), 11)
+        first = next(f for f in doc["findings"] if f["code"] == "833")
         self.assertEqual(first["code"], "833")
         self.assertEqual(first["details"]["database"], "Sales")
         self.assertEqual(first["timestamp"], "2021-04-06T02:14:11.120")

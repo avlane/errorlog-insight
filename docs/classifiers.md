@@ -43,6 +43,12 @@ two patterns.
   `database`, `database_id`, `handle`, `offset`, `network`
 * severity: warning below 30 s, error from 30 s, critical from 60 s
 
+* `FlushCache` checkpoint summaries: `buffers`, `writes`, `milliseconds`,
+  `throughput_mb_per_sec`, `io_saturation`, `avg_write_latency_ms`. Info; a warning when
+  the checkpoint took a minute or more.
+* "I/O is frozen on database X" and "I/O was resumed" (a snapshot backup, for
+  example VSS): info, kept so that stalls during a freeze can be explained.
+
 ## Schedulers: 17883 and 17884
 
 * 17883 non-yielding: details `scheduler`, `kernel_ms`, `user_ms`,
