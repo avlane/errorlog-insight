@@ -145,3 +145,51 @@ def io_stalls_during_maintenance(findings):
                     "io-during-" + kind, title, "warning" if worst < 30 else "error",
                     "high" if relation == "during" else "medium", list(episode) + [cause], advice))
     return out
+
+
+# ---------------------------------------------------------------------------
+# A full log that is waiting for log backups
+# ---------------------------------------------------------------------------
+
+BACKUP_LOOKBACK = timedelta(hours=6)
+DEVICE_ERROR_WINDOW = timedelta(seconds=5)
+
+
+def _failed_log_backups(findings, server, database, before):
+    """3041 failures of BACKUP LOG for `database` shortly before `before`, with the device error that caused them."""
+    out = []
+    devices = of_code(findings, "18204", "3201")
+    for f in of_code(findings, "3041"):
+        if (server_of(f) == server and f.details["kind"] == "log" and f.details["database"] == database
+                and before - BACKUP_LOOKBACK <= f.entry.timestamp <= before):
+            out.append(f)
+            out.extend(d for d in devices if server_of(d) == server
+                       and timedelta(0) <= f.entry.timestamp - d.entry.timestamp <= DEVICE_ERROR_WINDOW)
+    return out
+
+
+@insight_rule
+def log_full_waiting_for_backup(findings):
+    out = []
+    for full in of_code(findings, "9002"):
+        if full.details.get("log_reuse_wait") != "LOG_BACKUP":
+            continue
+        database = full.details["database"]
+        failures = _failed_log_backups(findings, server_of(full), database, full.entry.timestamp)
+        if failures:
+            reasons = sorted({f.details["os_error_text"] for f in failures if "os_error_text" in f.details})
+            because = " (%s)" % "; ".join(reasons) if reasons else ""
+            out.append(Insight(
+                "logfull-backups-failing",
+                "The log of %s is full because log backups have been failing%s" % (database, because),
+                "critical", "high", failures + [full],
+                "Fix the cause of the failed log backups first, then take a log backup so the log can be reused. "
+                "Growing the log file only delays the next 9002."))
+        else:
+            out.append(Insight(
+                "logfull-no-backups",
+                "The log of %s is full and no log backup failure is logged" % database,
+                "critical", "medium", [full],
+                "SQL Server is waiting for a log backup and none was attempted, or the attempts are not in this "
+                "log: check that the log backup job exists, is enabled and is not blocked or hung."))
+    return out

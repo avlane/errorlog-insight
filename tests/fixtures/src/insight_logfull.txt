@@ -1,0 +1,18 @@
+2025-02-04 01:15:02.21 Backup      Error: 18204, Severity: 16, State: 1.
+2025-02-04 01:15:02.21 Backup      BackupDiskFile::CreateMedia: Backup device 'E:\Backups\Sales\Sales_LOG_20250204_0115.trn' failed to create. Operating system error 112(There is not enough space on the disk.).
+2025-02-04 01:15:02.23 Backup      Error: 3041, Severity: 16, State: 1.
+2025-02-04 01:15:02.23 Backup      BACKUP failed to complete the command BACKUP LOG Sales. Check the backup application log for detailed messages.
+2025-02-04 01:30:02.21 Backup      Error: 18204, Severity: 16, State: 1.
+2025-02-04 01:30:02.21 Backup      BackupDiskFile::CreateMedia: Backup device 'E:\Backups\Sales\Sales_LOG_20250204_0130.trn' failed to create. Operating system error 112(There is not enough space on the disk.).
+2025-02-04 01:30:02.23 Backup      Error: 3041, Severity: 16, State: 1.
+2025-02-04 01:30:02.23 Backup      BACKUP failed to complete the command BACKUP LOG Sales. Check the backup application log for detailed messages.
+2025-02-04 01:45:02.21 Backup      Error: 18204, Severity: 16, State: 1.
+2025-02-04 01:45:02.21 Backup      BackupDiskFile::CreateMedia: Backup device 'E:\Backups\Sales\Sales_LOG_20250204_0145.trn' failed to create. Operating system error 112(There is not enough space on the disk.).
+2025-02-04 01:45:02.23 Backup      Error: 3041, Severity: 16, State: 1.
+2025-02-04 01:45:02.23 Backup      BACKUP failed to complete the command BACKUP LOG Sales. Check the backup application log for detailed messages.
+2025-02-04 02:03:41.20 spid83      Error: 9002, Severity: 17, State: 2.
+2025-02-04 02:03:41.20 spid83      The transaction log for database 'Sales' is full due to 'LOG_BACKUP'.
+2025-02-04 02:10:12.64 spid90      Error: 9002, Severity: 17, State: 2.
+2025-02-04 02:10:12.64 spid90      The transaction log for database 'Reporting' is full due to 'LOG_BACKUP'.
+2025-02-04 02:11:00.05 spid91      Error: 9002, Severity: 17, State: 2.
+2025-02-04 02:11:00.05 spid91      The transaction log for database 'Staging' is full due to 'ACTIVE_TRANSACTION'.

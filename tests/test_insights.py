@@ -56,5 +56,52 @@ class IoMaintenanceTests(unittest.TestCase):
         self.assertEqual(find_insights(findings_of(("A", "noise.log"), ("A", "startup_2019.log"))), [])
 
 
+class LogFullTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.insights = [i for i in find_insights(findings_of(("SQLPROD01", "insight_logfull.log")))
+                        if i.code.startswith("logfull")]
+
+    def test_one_insight_per_log_that_waits_for_a_backup(self):
+        self.assertEqual(sorted(i.code for i in self.insights), ["logfull-backups-failing", "logfull-no-backups"])
+
+    def test_failing_backups_are_the_evidence(self):
+        i = next(i for i in self.insights if i.code == "logfull-backups-failing")
+        self.assertEqual(i.severity, "critical")
+        self.assertEqual(i.confidence, "high")
+        self.assertIn("log of Sales is full because log backups have been failing", i.title)
+        self.assertIn("There is not enough space on the disk.", i.title)
+        self.assertEqual(sorted(f.code for f in i.evidence), ["18204"] * 3 + ["3041"] * 3 + ["9002"])
+        self.assertIn("Growing the log file only delays", i.advice)
+
+    def test_no_failures_means_a_missing_job(self):
+        i = next(i for i in self.insights if i.code == "logfull-no-backups")
+        self.assertIn("Reporting", i.title)
+        self.assertEqual(i.confidence, "medium")
+        self.assertEqual([f.code for f in i.evidence], ["9002"])
+
+    def test_other_reuse_waits_are_left_alone(self):
+        titles = " ".join(i.title for i in self.insights)
+        self.assertNotIn("Staging", titles)
+
+    def test_failures_on_another_server_do_not_count(self):
+        findings = findings_of(("SQLPROD01", "insight_logfull.log"))
+        for f in findings:
+            if f.code == "3041":
+                f.entry.replica = "SQLDR02"
+        codes = [i.code for i in find_insights(findings) if i.code.startswith("logfull")]
+        self.assertEqual(codes, ["logfull-no-backups", "logfull-no-backups"])
+
+    def test_old_failures_do_not_count(self):
+        from datetime import timedelta
+        findings = findings_of(("SQLPROD01", "insight_logfull.log"))
+        for f in findings:
+            if f.code in ("3041", "18204"):
+                for e in f.entries:
+                    e.timestamp -= timedelta(hours=9)
+        codes = [i.code for i in find_insights(findings) if i.code.startswith("logfull")]
+        self.assertEqual(codes, ["logfull-no-backups", "logfull-no-backups"])
+
+
 if __name__ == "__main__":
     unittest.main()
