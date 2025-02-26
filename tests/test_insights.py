@@ -103,5 +103,42 @@ class LogFullTests(unittest.TestCase):
         self.assertEqual(codes, ["logfull-no-backups", "logfull-no-backups"])
 
 
+class NonYieldingTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.findings = findings_of(("SQLPROD01", "insight_nonyield.log"))
+        cls.insights = find_insights(cls.findings)
+
+    def test_two_explained_stalls(self):
+        self.assertEqual(sorted(i.code for i in self.insights), ["stall-from-paged-out-memory", "stall-with-slow-io"])
+
+    def test_paged_out_memory(self):
+        i = next(i for i in self.insights if i.code == "stall-from-paged-out-memory")
+        self.assertEqual(i.confidence, "high")
+        self.assertEqual([f.code for f in i.evidence], ["17890", "17883"])
+        self.assertIn("lock pages in memory", i.advice)
+        self.assertIn("Scheduler 5", i.title)
+
+    def test_slow_io(self):
+        i = next(i for i in self.insights if i.code == "stall-with-slow-io")
+        self.assertEqual(i.confidence, "medium")
+        self.assertIn("E:", i.advice)
+        self.assertEqual([f.code for f in i.evidence], ["833", "17883"])
+
+    def test_stall_without_a_nearby_cause_is_not_explained(self):
+        late = [f for f in self.findings if f.code == "17883" and f.entry.timestamp.hour == 15]
+        self.assertEqual(len(late), 1)
+        explained = {id(f) for i in self.insights for f in i.evidence}
+        self.assertNotIn(id(late[0]), explained)
+
+    def test_cpu_bound_stall_next_to_slow_io_is_left_alone(self):
+        findings = findings_of(("SQLPROD01", "insight_nonyield.log"))
+        for f in findings:
+            if f.code == "17883":
+                f.details["pattern"] = "cpu-bound"
+        self.assertEqual([i.code for i in find_insights(findings)], ["stall-from-paged-out-memory"])
+        self.assertEqual(find_insights(findings)[0].confidence, "medium")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -193,3 +193,43 @@ def log_full_waiting_for_backup(findings):
                 "SQL Server is waiting for a log backup and none was attempted, or the attempts are not in this "
                 "log: check that the log backup job exists, is enabled and is not blocked or hung."))
     return out
+
+
+# ---------------------------------------------------------------------------
+# A non-yielding scheduler with an outside cause
+# ---------------------------------------------------------------------------
+
+CAUSE_WINDOW = timedelta(minutes=10)
+
+
+def _nearby(findings, anchor, codes, before=CAUSE_WINDOW, after=timedelta(minutes=1)):
+    """Findings of `codes` on the same server from `before` ahead of the anchor to `after` behind it."""
+    start = anchor.entry.timestamp - before
+    end = anchor.entry.timestamp + after
+    return [f for f in of_code(findings, *codes)
+            if server_of(f) == server_of(anchor) and start <= f.entry.timestamp <= end]
+
+
+@insight_rule
+def non_yielding_with_outside_cause(findings):
+    out = []
+    for ny in of_code(findings, "17883"):
+        paged = _nearby(findings, ny, ("17890",))
+        slow_io = _nearby(findings, ny, ("833",), before=timedelta(minutes=2))
+        if paged:
+            confidence = "high" if ny.details["pattern"] == "stalled" else "medium"
+            out.append(Insight(
+                "stall-from-paged-out-memory",
+                "Scheduler %d stalled while SQL Server memory was being paged out" % ny.details["scheduler"],
+                "error", confidence, paged + [ny],
+                "A worker that uses no CPU but holds a scheduler is often waiting for pages to come back from disk. "
+                "Fix the memory trimming (lock pages in memory, max server memory, VM ballooning) before chasing "
+                "the query."))
+        if slow_io and ny.details["pattern"] != "cpu-bound":
+            out.append(Insight(
+                "stall-with-slow-io",
+                "Scheduler %d stalled while storage was reporting slow I/O" % ny.details["scheduler"],
+                "error", "medium", slow_io + [ny],
+                "The worker was not burning CPU, and I/O requests were taking over 15 seconds in the same minutes. "
+                "Look at the storage first: %s." % ", ".join(sorted({f.details["volume"] for f in slow_io}))))
+    return out

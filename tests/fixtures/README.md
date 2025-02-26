@@ -27,6 +27,7 @@ it (UTF-16 LE, byte order mark, CRLF). `tools/encode_log.py` converts, and
 | ag_connectivity, ag_lease, ag_lease_failover | lost replica connections; lease expiry after a stall |
 | insight_io | slow I/O during a snapshot freeze and during CHECKDB, and one stall nothing explains |
 | insight_logfull | log backups failing for hours, then 9002 LOG_BACKUP; one log with no failures logged |
+| insight_nonyield | non-yielding schedulers after paged-out memory and during slow I/O; one with no outside cause |
 | traceflags | DBCC TRACEON and TRACEOFF |
 | noise | messages no rule recognises, for the template clustering |
 | sp_readerrorlog.tsv, log_viewer_export.csv | saved grids (tab separated; CSV, newest first) |
