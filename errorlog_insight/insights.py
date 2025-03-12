@@ -233,3 +233,55 @@ def non_yielding_with_outside_cause(findings):
                 "The worker was not burning CPU, and I/O requests were taking over 15 seconds in the same minutes. "
                 "Look at the storage first: %s." % ", ".join(sorted({f.details["volume"] for f in slow_io}))))
     return out
+
+
+# ---------------------------------------------------------------------------
+# AG data movement suspended
+# ---------------------------------------------------------------------------
+
+SYSTEM_SUSPENDS = ("SUSPEND_FROM_REDO", "SUSPEND_FROM_APPLY", "SUSPEND_FROM_CAPTURE", "SUSPEND_FROM_UNDO")
+LOCAL_ERROR_CODES = ("9002", "823", "824", "825", "833", "1105")
+SUSPEND_LOOKBACK = timedelta(minutes=10)
+
+
+@insight_rule
+def suspend_after_local_error(findings):
+    out = []
+    for susp in of_code(findings, "35264"):
+        if susp.details["reason"] not in SYSTEM_SUSPENDS:
+            continue
+        causes = _nearby(findings, susp, LOCAL_ERROR_CODES, before=SUSPEND_LOOKBACK, after=timedelta(seconds=0))
+        if not causes:
+            continue
+        database = susp.details["database"]
+        same_db = [c for c in causes if c.code == "9002" and c.details["database"] == database]
+        best = same_db or causes
+        names = sorted({c.code for c in best})
+        out.append(Insight(
+            "suspend-after-local-error",
+            "Data movement for %s was suspended right after error %s on %s" % (database, "/".join(names), server_of(susp)),
+            "error", "high" if same_db else "medium", best + [susp],
+            "The replica suspended itself because applying log failed. Fix the error shown (free log space, "
+            "repair storage), then resume with ALTER DATABASE %s SET HADR RESUME." % database))
+    return out
+
+
+@insight_rule
+def suspend_never_resumed(findings):
+    out = []
+    resumes = of_code(findings, "35265")
+    for susp in of_code(findings, "35264"):
+        later = [r for r in resumes if server_of(r) == server_of(susp)
+                 and r.details["database"] == susp.details["database"]
+                 and r.entry.timestamp > susp.entry.timestamp]
+        if later:
+            continue
+        by_user = susp.details["by_user"]
+        out.append(Insight(
+            "suspend-not-resumed",
+            "Data movement for %s on %s was suspended and not resumed in these logs" % (
+                susp.details["database"], server_of(susp)),
+            "warning" if by_user else "error", "high", [susp],
+            "A person suspended it; make sure the maintenance is finished and resume it." if by_user else
+            "Until it is resumed the secondary falls behind and the log cannot be truncated on the primary."))
+    return out

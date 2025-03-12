@@ -140,5 +140,46 @@ class NonYieldingTests(unittest.TestCase):
         self.assertEqual(find_insights(findings)[0].confidence, "medium")
 
 
+class SuspendTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.insights = find_insights(findings_of(("SQLDR02", "insight_ag_suspend.log")))
+
+    def by_code(self, code):
+        return [i for i in self.insights if i.code == code]
+
+    def test_what_was_found(self):
+        self.assertEqual(sorted(i.code for i in self.insights),
+                         ["suspend-after-local-error", "suspend-after-local-error",
+                          "suspend-not-resumed", "suspend-not-resumed"])
+
+    def test_log_full_on_the_secondary(self):
+        i = next(i for i in self.by_code("suspend-after-local-error") if "Reporting" in i.title)
+        self.assertEqual(i.confidence, "high")
+        self.assertIn("error 9002 on SQLDR02", i.title)
+        self.assertEqual([f.code for f in i.evidence], ["9002", "35264"])
+        self.assertIn("SET HADR RESUME", i.advice)
+
+    def test_corruption_on_the_secondary_is_only_medium(self):
+        i = next(i for i in self.by_code("suspend-after-local-error") if "Sales" in i.title)
+        self.assertEqual(i.confidence, "medium")
+        self.assertIn("824", i.title)
+
+    def test_not_resumed(self):
+        titles = {i.title: i for i in self.by_code("suspend-not-resumed")}
+        self.assertEqual(len(titles), 2)
+        reporting = next(i for t, i in titles.items() if "Reporting" in t)
+        staging = next(i for t, i in titles.items() if "Staging" in t)
+        self.assertEqual(reporting.severity, "error")
+        self.assertEqual(staging.severity, "warning")
+        self.assertIn("A person suspended it", staging.advice)
+
+    def test_sales_was_resumed(self):
+        self.assertFalse(any("Sales" in i.title for i in self.by_code("suspend-not-resumed")))
+
+    def test_user_suspend_is_not_blamed_on_a_local_error(self):
+        self.assertFalse(any("Staging" in i.title for i in self.by_code("suspend-after-local-error")))
+
+
 if __name__ == "__main__":
     unittest.main()
