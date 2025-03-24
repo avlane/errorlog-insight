@@ -188,8 +188,10 @@ def burst_to_dict(b):
 
 
 def incident_to_dict(inc):
-    return dict(inc, start=_iso(inc["start"]), end=_iso(inc["end"]),
-                precursors=[dict(p, time=_iso(p["time"])) for p in inc["precursors"]])
+    out = {k: v for k, v in inc.items() if k != "findings"}  # the findings are already in the findings list
+    out.update(start=_iso(inc["start"]), end=_iso(inc["end"]),
+               precursors=[dict(p, time=_iso(p["time"])) for p in inc["precursors"]])
+    return out
 
 
 def render_json(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False, incidents=()):

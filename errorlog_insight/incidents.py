@@ -87,6 +87,7 @@ def _describe(group, precursors, lookback):
         "no_primary_seconds": gap_seconds,
         "clock_skew_suspected": gap_seconds is not None and gap_seconds < 0,
         "events": len(group),
+        "findings": list(group),
         "precursors": [{"code": f.code, "replica": _label(f), "time": f.entry.timestamp, "title": f.title}
                        for f in before],
         "likely_cause": _likely_cause(kind, {f.code for f in before}),

@@ -13,6 +13,7 @@ direct, "medium" when it is circumstantial.
 from dataclasses import dataclass, field
 from datetime import timedelta
 
+from .incidents import find_incidents
 from .model import severity_rank
 from .timeline import merge_findings
 
@@ -284,4 +285,49 @@ def suspend_never_resumed(findings):
             "warning" if by_user else "error", "high", [susp],
             "A person suspended it; make sure the maintenance is finished and resume it." if by_user else
             "Until it is resumed the secondary falls behind and the log cannot be truncated on the primary."))
+    return out
+
+
+# ---------------------------------------------------------------------------
+# An availability group that keeps failing over
+# ---------------------------------------------------------------------------
+
+FLAP_WINDOW = timedelta(hours=1)
+FLAP_COUNT = 3
+FAILOVER_KINDS = ("planned failover", "unplanned failover", "failed failover")
+
+
+@insight_rule
+def availability_group_flapping(findings):
+    out = []
+    incidents = [i for i in find_incidents(findings) if i["kind"] in FAILOVER_KINDS]
+    by_group = {}
+    for inc in incidents:
+        by_group.setdefault(tuple(inc["ags"]), []).append(inc)
+    for ags, items in by_group.items():
+        start = 0
+        reported_until = None
+        for end in range(len(items)):
+            while items[end]["start"] - items[start]["start"] > FLAP_WINDOW:
+                start += 1
+            run = items[start:end + 1]
+            if len(run) < FLAP_COUNT or (reported_until is not None and run[0]["start"] <= reported_until):
+                continue
+            # extend the run while further incidents keep arriving within the window
+            tail = end + 1
+            while tail < len(items) and items[tail]["start"] - items[tail - 1]["start"] <= FLAP_WINDOW:
+                tail += 1
+            run = items[start:tail]
+            reported_until = run[-1]["end"]
+            unplanned = sum(1 for i in run if i["kind"] != "planned failover")
+            evidence = [f for inc in run for f in inc["findings"] if f.code == "1480"]
+            name = ", ".join(ags) or "an availability group"
+            out.append(Insight(
+                "ag-flapping",
+                "%s failed over %d times between %s and %s (%d unplanned)" % (
+                    name, len(run), run[0]["start"].strftime("%H:%M"), run[-1]["end"].strftime("%H:%M"), unplanned),
+                "critical" if unplanned >= FLAP_COUNT else "error", "high", evidence,
+                "Repeated failovers usually mean a health check keeps failing on a marginal condition: look at "
+                "the cause of the first one, then at the lease and health check timeouts, the cluster's "
+                "failover threshold, and the network between the nodes. Consider manual failover mode until fixed."))
     return out

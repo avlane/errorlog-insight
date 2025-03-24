@@ -181,5 +181,40 @@ class SuspendTests(unittest.TestCase):
         self.assertFalse(any("Staging" in i.title for i in self.by_code("suspend-after-local-error")))
 
 
+class FlappingTests(unittest.TestCase):
+    def test_four_failovers_in_forty_minutes(self):
+        insights = find_insights(findings_of(("SQLPROD01", "insight_ag_flap.log")))
+        (flap,) = [i for i in insights if i.code == "ag-flapping"]
+        self.assertEqual(flap.severity, "critical")
+        self.assertEqual(flap.confidence, "high")
+        self.assertEqual(flap.title, "AG_Sales failed over 4 times between 02:00 and 02:41 (4 unplanned)")
+        self.assertEqual(len(flap.evidence), 8)
+        self.assertTrue(all(f.code == "1480" for f in flap.evidence))
+        self.assertIn("lease", flap.advice)
+
+    def test_one_failover_is_not_flapping(self):
+        found = find_insights(findings_of(("SQLPROD01", "ag_primary.log"), ("SQLDR02", "ag_secondary.log")))
+        self.assertEqual([i for i in found if i.code == "ag-flapping"], [])
+
+    def test_failovers_far_apart_are_not_flapping(self):
+        from datetime import timedelta
+        findings = findings_of(("SQLPROD01", "insight_ag_flap.log"))
+        for n, f in enumerate(findings):
+            for e in f.entries:
+                e.timestamp += timedelta(hours=3 * (n // 4))
+        self.assertEqual([i for i in find_insights(findings) if i.code == "ag-flapping"], [])
+
+    def test_planned_flapping_is_only_an_error(self):
+        findings = findings_of(("SQLPROD01", "insight_ag_flap.log"))
+        for f in findings:
+            if f.code == "1480":
+                f.details["planned"] = True
+            if f.code == "19406":
+                f.details["user_initiated"] = True
+        (flap,) = [i for i in find_insights(findings) if i.code == "ag-flapping"]
+        self.assertEqual(flap.severity, "error")
+        self.assertIn("(0 unplanned)", flap.title)
+
+
 if __name__ == "__main__":
     unittest.main()
