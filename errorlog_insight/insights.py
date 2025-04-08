@@ -15,6 +15,8 @@ from datetime import timedelta
 
 from .incidents import find_incidents
 from .model import severity_rank
+from .rules.login import decode_login_state
+from .summaries import login_summary
 from .timeline import merge_findings
 
 CONFIDENCE = ("low", "medium", "high")
@@ -330,4 +332,42 @@ def availability_group_flapping(findings):
                 "Repeated failovers usually mean a health check keeps failing on a marginal condition: look at "
                 "the cause of the first one, then at the lease and health check timeouts, the cluster's "
                 "failover threshold, and the network between the nodes. Consider manual failover mode until fixed."))
+    return out
+
+
+# ---------------------------------------------------------------------------
+# Who is behind the failed logins
+# ---------------------------------------------------------------------------
+
+@insight_rule
+def login_failure_sources(findings):
+    out = []
+    for row in login_summary(findings):
+        n = row["failures"]
+        users = row["users"]
+        client = row["client"]
+        if row["pattern"] == "password guessing":
+            sa = " (including sa)" if any(u.lower() == "sa" for u in users) else ""
+            out.append(Insight(
+                "login-guessing",
+                "%s tried wrong passwords %d times for %s%s" % (client, n, ", ".join(users[:3]), sa),
+                "error", "high", row["findings"],
+                "If the address is not a known application, block it at the firewall and rename or disable sa. "
+                "If it is, someone is running a job with an old password."))
+        elif row["pattern"] == "many users tried":
+            out.append(Insight(
+                "login-spray",
+                "%s tried %d different logins in a few minutes (%s ...)" % (client, len(users), ", ".join(users[:4])),
+                "error", "high", row["findings"],
+                "Walking through common names such as sa and admin is a scan. SQL Server should not be reachable "
+                "from that address; restrict it, and make sure sa is disabled and has a long password."))
+        elif row["pattern"] == "repeating client":
+            state = max(row["states"], key=lambda k: row["states"][k])
+            _, cause, fix = decode_login_state(state)
+            out.append(Insight(
+                "login-stale-client",
+                "%s has failed to log in %d times over %.1f hours (state %s)" % (
+                    client, n, (row["last"] - row["first"]).total_seconds() / 3600.0, state),
+                "warning", "medium", row["findings"],
+                "A service keeps retrying. %s %s" % (cause, fix)))
     return out

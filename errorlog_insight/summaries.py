@@ -91,7 +91,7 @@ def login_summary(findings):
             continue
         d = f.details
         client = d.get("client") or "unknown"
-        clients.setdefault(client, []).append((f.entry.timestamp, d["user"], d["state"]))
+        clients.setdefault(client, []).append((f.entry.timestamp, d["user"], d["state"], f))
     rows = []
     for client, events in clients.items():
         events.sort(key=lambda e: e[0])
@@ -103,6 +103,7 @@ def login_summary(findings):
             "first": events[0][0],
             "last": events[-1][0],
             "pattern": _login_pattern(events),
+            "findings": [e[3] for e in events],
         })
     order = {"password guessing": 0, "many users tried": 1, "repeating client": 2, "occasional": 3}
     rows.sort(key=lambda r: (order[r["pattern"]], -r["failures"], r["client"]))

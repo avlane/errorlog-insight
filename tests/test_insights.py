@@ -216,5 +216,41 @@ class FlappingTests(unittest.TestCase):
         self.assertIn("(0 unplanned)", flap.title)
 
 
+class LoginInsightTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.insights = [i for i in find_insights(findings_of(("SQLPROD01", "login_patterns.log")))
+                        if i.code.startswith("login")]
+
+    def test_one_insight_per_suspicious_client(self):
+        self.assertEqual(sorted(i.code for i in self.insights), ["login-guessing", "login-spray", "login-stale-client"])
+
+    def test_guessing(self):
+        i = next(i for i in self.insights if i.code == "login-guessing")
+        self.assertEqual(i.title, "10.20.8.15 tried wrong passwords 7 times for reports")
+        self.assertEqual(i.severity, "error")
+        self.assertEqual(len(i.evidence), 7)
+
+    def test_spray_names_the_logins(self):
+        i = next(i for i in self.insights if i.code == "login-spray")
+        self.assertIn("203.0.113.45 tried 6 different logins", i.title)
+        self.assertIn("sa is disabled", i.advice)
+
+    def test_stale_service_explains_the_state(self):
+        i = next(i for i in self.insights if i.code == "login-stale-client")
+        self.assertIn("10.20.4.50 has failed to log in 40 times over 3.3 hours (state 38)", i.title)
+        self.assertEqual(i.severity, "warning")
+        self.assertIn("database named in the connection string cannot be opened", i.advice)
+        self.assertEqual(len(i.evidence), 40)
+
+    def test_guessing_against_sa_is_called_out(self):
+        findings = findings_of(("SQLPROD01", "login_failures.log"))
+        (guess,) = [i for i in find_insights(findings) if i.code == "login-guessing"]
+        self.assertTrue(guess.title.endswith("(including sa)"))
+
+    def test_occasional_failures_are_not_insights(self):
+        self.assertEqual([i for i in find_insights(findings_of(("A", "backup_failures.log"))) if i.code.startswith("login")], [])
+
+
 if __name__ == "__main__":
     unittest.main()

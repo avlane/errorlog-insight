@@ -209,7 +209,8 @@ def render_json(entries, findings, files=(), unknown=(), top=10, bursts=(), time
         "incidents": [incident_to_dict(i) for i in incidents],
         "summaries": {
             "io": [dict(r, first=_iso(r["first"]), last=_iso(r["last"])) for r in io_summary(findings)],
-            "logins": [dict(r, first=_iso(r["first"]), last=_iso(r["last"])) for r in login_summary(findings)],
+            "logins": [dict({k: v for k, v in r.items() if k != "findings"}, first=_iso(r["first"]), last=_iso(r["last"]))
+                       for r in login_summary(findings)],
         },
         "unrecognised": [cluster_to_dict(c) for c in cluster_entries(unknown)[:top]],
     }
