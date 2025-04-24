@@ -34,7 +34,8 @@ def group_findings(findings):
     return sorted(groups.items(), key=lambda kv: (-worst(kv[1]), -len(kv[1]), kv[0]))
 
 
-def render_text(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False, incidents=()):
+def render_text(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False, incidents=(),
+                insights=()):
     lines = ["errorlog-insight report", ""]
     for name in files:
         lines.append("File:     %s" % name)
@@ -48,10 +49,15 @@ def render_text(entries, findings, files=(), unknown=(), top=10, bursts=(), time
         lines.extend(_unrecognised_lines(unknown, top))
         return "\n".join(lines) + "\n"
 
+    lines.extend(_insight_lines(insights))
     lines.append("Findings by type")
-    for code, items in group_findings(findings):
+    groups = group_findings(findings)
+    code_width = max(len(code) for code, _ in groups)
+    label_width = max(len(LABELS.get(code, code)) for code, _ in groups)
+    for code, items in groups:
         worst = max(items, key=lambda f: severity_rank(f.severity)).severity
-        lines.append("  %-7s %-24s x%-4d worst: %s" % (code, LABELS.get(code, code), len(items), worst))
+        lines.append("  %-*s  %-*s  x%-4d worst: %s" % (code_width, code, label_width, LABELS.get(code, code),
+                                                      len(items), worst))
     lines.append("")
 
     lines.append("Most severe")
@@ -72,6 +78,23 @@ def render_text(entries, findings, files=(), unknown=(), top=10, bursts=(), time
         lines.extend(["", "Timeline"] + ["  " + t for t in timeline_lines(findings)])
     lines.extend(_unrecognised_lines(unknown, top))
     return "\n".join(lines) + "\n"
+
+
+def _insight_lines(insights):
+    if not insights:
+        return []
+    lines = ["Insights (most important first)"]
+    for i in insights:
+        span = i.start.strftime("%Y-%m-%d %H:%M:%S")
+        if i.end != i.start:
+            span += " .. " + (i.end.strftime("%H:%M:%S") if i.end.date() == i.start.date()
+                              else i.end.strftime("%Y-%m-%d %H:%M:%S"))
+        lines.append("  [%s, %s confidence] %s" % (i.severity.upper(), i.confidence, i.title))
+        lines.append("      %d finding(s), %s" % (len(i.evidence), span))
+        if i.advice:
+            lines.append("      -> %s" % i.advice)
+    lines.append("")
+    return lines
 
 
 def _incident_lines(incidents):
@@ -194,7 +217,8 @@ def incident_to_dict(inc):
     return out
 
 
-def render_json(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False, incidents=()):
+def render_json(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False, incidents=(),
+                insights=()):
     # the findings list is already in time order, so the JSON needs no separate timeline
     first = min((e.timestamp for e in entries), default=None)
     last = max((e.timestamp for e in entries), default=None)

@@ -9,6 +9,7 @@ from .classify import classify, unclassified
 from .config import ConfigError, load_settings
 from .htmlreport import render_html
 from .incidents import find_incidents
+from .insights import find_insights
 from .reader import read_entries
 from .timefilter import in_window, parse_when
 from .timeline import apply_offset, merge_entries, merge_findings, parse_offset, parse_source
@@ -50,6 +51,8 @@ def build_parser():
                    help="fewest events in one bucket that can count as a burst (default: 5)")
     p.add_argument("--burst-factor", type=float, default=None, metavar="X",
                    help="how many times the recent average a bucket must reach (default: 3)")
+    p.add_argument("--no-insights", action="store_true",
+                   help="leave out the insights section (readings that combine several findings)")
     p.add_argument("--since", metavar="WHEN",
                    help="ignore entries before this time, for example 2024-05-14 or 2024-05-14T01:30")
     p.add_argument("--until", metavar="WHEN", help="ignore entries from this time on (exclusive)")
@@ -117,9 +120,11 @@ def main(argv=None, out=None):
     findings = merge_findings([f for f in all_findings if severity_rank(f.severity) >= floor])
     bursts = find_bursts(findings, settings.bursts)
     incidents = find_incidents(all_findings)  # planned failovers are info, so use the unfiltered findings
+    insights = [] if args.no_insights else [
+        i for i in find_insights(all_findings) if severity_rank(i.severity) >= floor]
     render = RENDERERS[choose_format(args)]
     report = render(entries, findings, paths, unknown=unknown, top=settings.top, bursts=bursts,
-                    timeline=args.timeline, incidents=incidents)
+                    timeline=args.timeline, incidents=incidents, insights=insights)
     if args.output:
         with open(args.output, "w", encoding="utf-8", newline="\n") as f:
             f.write(report)

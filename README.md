@@ -52,6 +52,7 @@ Options:
   is off, so the merged order of a failover is right.
 * `--timeline` lists the findings of all given files (for example the logs of both AG
   replicas) as one time-ordered list with the file name as the replica column.
+* `--no-insights` leaves out the insights section (see below).
 * `--min-severity {info,warning,error,critical}` hides the less interesting findings.
 
 Messages no rule recognises are grouped by template: numbers, addresses, GUIDs,
@@ -73,6 +74,17 @@ Recognised so far:
 | Crashes | stack dumps, assertions (17065/17066), 17310 |
 | Availability groups | 1480 role changes, 19406 replica state, 35264/35265 data movement, 41142 |
 | Lifecycle | startup banner, ready, shutdown, recovery progress |
+
+## Insights
+
+On top of the per-message findings, the report has a section of *insights*: readings that
+combine several findings, each with its evidence, a severity and a confidence (high when the
+evidence is direct, medium when it is circumstantial). Current ones: slow I/O that overlaps a
+snapshot freeze or a CHECKDB run, a full log that is waiting for failing log backups, a
+non-yielding scheduler with memory trimming or slow I/O next to it, AG data movement that
+suspended itself after a local error or was never resumed, an AG that keeps failing over, and
+the sources of failed logins (guessing, scanning, a service with a stale credential). They use
+timestamps, server labels and the details already extracted, nothing else.
 
 ## Using it as a library
 

@@ -128,7 +128,8 @@ def _finding_html(f):
     return "".join(parts)
 
 
-def render_html(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False, incidents=()):
+def render_html(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False, incidents=(),
+                insights=()):
     out = ['<!doctype html>', '<html lang="en">', '<head>', '<meta charset="utf-8">',
            '<meta name="viewport" content="width=device-width, initial-scale=1">',
            "<title>errorlog-insight report</title>", "<style>%s%s</style>" % (CSS, _filter_css()), "</head>", "<body>",
