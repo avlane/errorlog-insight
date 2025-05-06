@@ -210,6 +210,20 @@ def burst_to_dict(b):
             "peak": b.peak, "baseline": b.baseline}
 
 
+def insight_to_dict(i):
+    return {
+        "code": i.code,
+        "title": i.title,
+        "severity": i.severity,
+        "confidence": i.confidence,
+        "start": _iso(i.start),
+        "end": _iso(i.end),
+        "advice": i.advice,
+        "evidence": [{"timestamp": _iso(f.entry.timestamp), "replica": f.entry.replica, "line": f.entry.lineno,
+                      "code": f.code, "title": f.title} for f in i.evidence],
+    }
+
+
 def incident_to_dict(inc):
     out = {k: v for k, v in inc.items() if k != "findings"}  # the findings are already in the findings list
     out.update(start=_iso(inc["start"]), end=_iso(inc["end"]),
@@ -231,6 +245,7 @@ def render_json(entries, findings, files=(), unknown=(), top=10, bursts=(), time
         "findings": [finding_to_dict(f) for f in findings],
         "bursts": [burst_to_dict(b) for b in bursts],
         "incidents": [incident_to_dict(i) for i in incidents],
+        "insights": [insight_to_dict(i) for i in insights],
         "summaries": {
             "io": [dict(r, first=_iso(r["first"]), last=_iso(r["last"])) for r in io_summary(findings)],
             "logins": [dict({k: v for k, v in r.items() if k != "findings"}, first=_iso(r["first"]), last=_iso(r["last"]))

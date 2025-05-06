@@ -13,6 +13,7 @@ added, so readers should ignore keys they do not know.
 | `period` | `first` and `last` timestamp (`YYYY-MM-DDTHH:MM:SS.mmm`, local time of the log) |
 | `findings` | list of findings, in time order |
 | `incidents` | availability group failover incidents |
+| `insights` | readings that combine several findings (see below) |
 | `bursts` | bursts of findings against the rolling baseline |
 | `summaries` | `io` (slow I/O per file) and `logins` (failures per client) |
 | `unrecognised` | the biggest groups of messages no rule recognised |
@@ -46,6 +47,12 @@ timestamps have no time zone.
 `kind`, `start`, `end`, `ags`, `databases`, `replicas`, `old_primary`,
 `new_primary`, `no_primary_seconds`, `clock_skew_suspected`, `events`,
 `precursors` (list of `code`, `replica`, `time`, `title`) and `likely_cause`.
+
+## Insights
+
+`code`, `title`, `severity`, `confidence` (`low`, `medium` or `high`), `start`, `end`,
+`advice` and `evidence`: a list of references to findings (`timestamp`, `replica`, `line`,
+`code`, `title`), not copies, so the details stay in `findings`.
 
 ## Bursts
 

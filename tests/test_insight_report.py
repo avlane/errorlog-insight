@@ -1,4 +1,5 @@
 import io
+import json
 import unittest
 
 from errorlog_insight.cli import main
@@ -42,6 +43,42 @@ class InsightSectionTests(unittest.TestCase):
         # the evidence is info/warning level, but the insight is an error
         text = run("insight_nonyield.log", extra=["--min-severity", "error"])
         self.assertIn("stalled while storage was reporting slow I/O", text)
+
+
+class InsightOutputTests(unittest.TestCase):
+    def test_json(self):
+        doc = json.loads(run("insight_io.log", extra=["--json"]))
+        first = doc["insights"][0]
+        self.assertEqual(first["code"], "io-during-checkdb")
+        self.assertEqual(first["severity"], "error")
+        self.assertEqual(first["confidence"], "high")
+        self.assertEqual(first["start"], "2025-01-21T03:05:30.450")
+        self.assertEqual([e["code"] for e in first["evidence"]], ["833", "833", "checkdb"])
+        self.assertEqual(first["evidence"][0]["line"], 4)
+        self.assertIn("quiet period", first["advice"])
+
+    def test_json_without_insights(self):
+        doc = json.loads(run("insight_io.log", extra=["--json", "--no-insights"]))
+        self.assertEqual(doc["insights"], [])
+
+    def test_html(self):
+        text = run("insight_io.log", extra=["--html"])
+        self.assertIn("<h2>Insights</h2>", text)
+        self.assertLess(text.index("<h2>Insights</h2>"), text.index("<h2>Findings by type</h2>"))
+        self.assertIn("high confidence, 2025-01-21 03:05:30 to 2025-01-21 03:12:44", text)
+        self.assertIn("DBCC CHECKDB of Sales found no errors", text)
+
+    def test_html_escapes_evidence(self):
+        from datetime import datetime
+        from errorlog_insight.htmlreport import render_html
+        from errorlog_insight.insights import Insight
+        from errorlog_insight.model import Entry, Finding
+        f = Finding(Entry(datetime(2025, 5, 6), "x", "y", replica="<b>S</b>"), "topic", "c", "info", "<i>bad</i>")
+        text = render_html([], [], insights=[Insight("x", "<u>heading</u>", "info", "low", [f], "<s>a</s>")])
+        self.assertNotIn("<i>bad", text)
+        self.assertIn("&lt;i&gt;bad&lt;/i&gt;", text)
+        self.assertIn("&lt;u&gt;heading&lt;/u&gt;", text)
+        self.assertIn("&lt;b&gt;S&lt;/b&gt;", text)
 
 
 if __name__ == "__main__":

@@ -128,6 +128,16 @@ def _finding_html(f):
     return "".join(parts)
 
 
+def _insight_html(i):
+    span = _time(i.start) + ("" if i.end == i.start else " to " + _time(i.end))
+    rows = "".join("<li><span class=\"muted\">%s %s</span> %s</li>" % (
+        esc(_time(f.entry.timestamp)), esc(f.entry.replica), esc(f.title)) for f in i.evidence)
+    return ('<details class="sev-%s" open><summary><span class="badge sev-%s">%s</span> '
+            '<span class="muted">%s confidence, %s</span> %s</summary>%s<ul>%s</ul></details>' % (
+                esc(i.severity), esc(i.severity), esc(i.severity), esc(i.confidence), esc(span), esc(i.title),
+                "<p>%s</p>" % esc(i.advice) if i.advice else "", rows))
+
+
 def render_html(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False, incidents=(),
                 insights=()):
     out = ['<!doctype html>', '<html lang="en">', '<head>', '<meta charset="utf-8">',
@@ -143,6 +153,10 @@ def render_html(entries, findings, files=(), unknown=(), top=10, bursts=(), time
     out.append('<p class="muted">%s &middot; %d entries &middot; %d findings</p>' % (esc(period), len(entries), len(findings)))
     if files:
         out.append('<p class="muted">%s</p>' % ", ".join(esc(f) for f in files))
+
+    if insights:
+        out.append("<h2>Insights</h2>")
+        out.extend(_insight_html(i) for i in insights)
 
     if findings:
         chart = activity_svg(findings)
