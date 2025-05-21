@@ -6,16 +6,22 @@ from datetime import timedelta
 SOURCE_RE = re.compile(r"^(?P<label>[A-Za-z0-9_.-]+)=(?P<path>.+)$")
 
 
-def parse_source(arg):
-    """Split 'SQLDR02=logs/dr02/ERRORLOG' into (label, path); a plain path gets its file name as label.
+def split_source(arg):
+    """Split 'SQLDR02=logs/dr02/ERRORLOG' into ('SQLDR02', path). The label is None when there is none.
 
     Paths with a drive letter (C:\\logs) have a colon, not an equals sign, so they are never mistaken
-    for a label. A path that really contains '=' can be written as ./name=x.
+    for a label, and a file that really exists is always taken as a path.
     """
     m = SOURCE_RE.match(arg)
     if m and not os.path.exists(arg):
         return m.group("label"), m.group("path")
-    return default_label(arg), arg
+    return None, arg
+
+
+def parse_source(arg):
+    """(label, path) for one file argument; a plain path gets its file name as label."""
+    label, path = split_source(arg)
+    return label or default_label(path), path
 
 
 def default_label(path):

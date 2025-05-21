@@ -11,8 +11,9 @@ from .htmlreport import render_html
 from .incidents import find_incidents
 from .insights import find_insights
 from .reader import read_entries
+from .sources import drop_duplicate_entries, drop_duplicate_findings, expand_sources
 from .timefilter import in_window, parse_when
-from .timeline import apply_offset, merge_entries, merge_findings, parse_offset, parse_source
+from .timeline import apply_offset, merge_entries, merge_findings, parse_offset
 from .model import SEVERITIES, severity_rank
 from .report import render_json, render_text
 
@@ -99,23 +100,26 @@ def main(argv=None, out=None):
         sys.stderr.write("errorlog-insight: %s\n" % exc)
         return 2
     per_file = []
+    used_offsets = set()
     all_findings, unknown = [], []
     paths = []
-    for arg in args.files:
-        label, path = parse_source(arg)
+    for label, path in expand_sources(args.files):
         paths.append(path)
         entries = read_entries(path, replica=label)
         if label in offsets:
-            apply_offset(entries, offsets.pop(label))
+            apply_offset(entries, offsets[label])
+            used_offsets.add(label)
         entries = in_window(entries, since, until)
         found = classify(entries)
         per_file.append(entries)
         all_findings.extend(found)
         unknown.extend(unclassified(entries, found))
-    if offsets:
-        sys.stderr.write("errorlog-insight: --offset names no input file: %s\n" % ", ".join(sorted(offsets)))
+    if set(offsets) - used_offsets:
+        sys.stderr.write("errorlog-insight: --offset names no input file: %s\n" % ", ".join(sorted(set(offsets) - used_offsets)))
         return 2
-    entries = merge_entries(*per_file)
+    entries = drop_duplicate_entries(merge_entries(*per_file))
+    all_findings = drop_duplicate_findings(merge_findings(all_findings))
+    unknown = drop_duplicate_entries(unknown)
     floor = severity_rank(settings.min_severity)
     findings = merge_findings([f for f in all_findings if severity_rank(f.severity) >= floor])
     bursts = find_bursts(findings, settings.bursts)

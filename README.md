@@ -43,8 +43,12 @@ Options:
 * `--top N` sets how many groups of unrecognised messages are listed (default 10).
 * `--burst-min N` and `--burst-factor X` tune burst detection: a minute with at least N
   events of one kind, and X times the average of the previous 30 minutes, is reported as a burst.
+* Wildcards are expanded by the tool (Windows shells do not): `ERRORLOG*` takes ERRORLOG,
+  ERRORLOG.1, ERRORLOG.2 ... in natural order. Identical entries from the same server are
+  counted once, so a copy of a log next to the original changes nothing.
 * Give a file a name with `LABEL=FILE`, for example `SQLPROD01=ERRORLOG SQLDR02=dr02/ERRORLOG.1`;
-  the label is used as the replica in merged output (the default is the file name).
+  the label is used as the replica in merged output (the default is the file name), and a
+  label in front of a wildcard applies to every file it matches.
 * `--since WHEN` and `--until WHEN` keep only the entries in a window (`2024-05-14`,
   `2024-05-14 01:30`, `2024-05-14T01:30:15`; `--until` is exclusive). The window is applied
   before anything is classified.
