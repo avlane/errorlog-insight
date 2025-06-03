@@ -11,6 +11,7 @@ from .htmlreport import render_html
 from .incidents import find_incidents
 from .insights import find_insights
 from .reader import read_entries
+from .serverinfo import collect_server_info
 from .sources import drop_duplicate_entries, drop_duplicate_findings, expand_sources
 from .timefilter import in_window, parse_when
 from .timeline import apply_offset, merge_entries, merge_findings, parse_offset
@@ -128,7 +129,8 @@ def main(argv=None, out=None):
         i for i in find_insights(all_findings) if severity_rank(i.severity) >= floor]
     render = RENDERERS[choose_format(args)]
     report = render(entries, findings, paths, unknown=unknown, top=settings.top, bursts=bursts,
-                    timeline=args.timeline, incidents=incidents, insights=insights)
+                    timeline=args.timeline, incidents=incidents, insights=insights,
+                    servers=collect_server_info(entries))
     if args.output:
         with open(args.output, "w", encoding="utf-8", newline="\n") as f:
             f.write(report)

@@ -7,6 +7,7 @@ from . import __version__
 from .classify import LABELS
 from .cluster import cluster_entries
 from .model import severity_rank
+from .serverinfo import describe
 from .summaries import io_summary, login_summary
 from .timeline import timeline_lines
 
@@ -35,7 +36,7 @@ def group_findings(findings):
 
 
 def render_text(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False, incidents=(),
-                insights=()):
+                insights=(), servers=()):
     lines = ["errorlog-insight report", ""]
     for name in files:
         lines.append("File:     %s" % name)
@@ -43,6 +44,11 @@ def render_text(entries, findings, files=(), unknown=(), top=10, bursts=(), time
     lines.append("Entries:  %d" % len(entries))
     lines.append("Findings: %d" % len(findings))
     lines.append("")
+    if servers:
+        lines.append("Servers (one line per start in the logs)")
+        for info in servers:
+            lines.append("  %s  %s  %s" % (info["started"].strftime("%Y-%m-%d %H:%M:%S"), info["server"], describe(info)))
+        lines.append("")
     if not findings:
         lines.append("Nothing recognised.")
         lines.extend(_incident_lines(incidents))
@@ -232,7 +238,7 @@ def incident_to_dict(inc):
 
 
 def render_json(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False, incidents=(),
-                insights=()):
+                insights=(), servers=()):
     # the findings list is already in time order, so the JSON needs no separate timeline
     first = min((e.timestamp for e in entries), default=None)
     last = max((e.timestamp for e in entries), default=None)
@@ -246,6 +252,7 @@ def render_json(entries, findings, files=(), unknown=(), top=10, bursts=(), time
         "bursts": [burst_to_dict(b) for b in bursts],
         "incidents": [incident_to_dict(i) for i in incidents],
         "insights": [insight_to_dict(i) for i in insights],
+        "servers": [dict(info, started=_iso(info["started"])) for info in servers],
         "summaries": {
             "io": [dict(r, first=_iso(r["first"]), last=_iso(r["last"])) for r in io_summary(findings)],
             "logins": [dict({k: v for k, v in r.items() if k != "findings"}, first=_iso(r["first"]), last=_iso(r["last"]))

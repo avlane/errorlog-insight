@@ -6,6 +6,7 @@ from .classify import LABELS
 from .cluster import cluster_entries
 from .model import SEVERITIES, severity_rank
 from .report import group_findings
+from .serverinfo import describe
 from .summaries import io_summary, login_summary
 from .timeline import default_label
 
@@ -139,7 +140,7 @@ def _insight_html(i):
 
 
 def render_html(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False, incidents=(),
-                insights=()):
+                insights=(), servers=()):
     out = ['<!doctype html>', '<html lang="en">', '<head>', '<meta charset="utf-8">',
            '<meta name="viewport" content="width=device-width, initial-scale=1">',
            "<title>errorlog-insight report</title>", "<style>%s%s</style>" % (CSS, _filter_css()), "</head>", "<body>",
@@ -153,6 +154,13 @@ def render_html(entries, findings, files=(), unknown=(), top=10, bursts=(), time
     out.append('<p class="muted">%s &middot; %d entries &middot; %d findings</p>' % (esc(period), len(entries), len(findings)))
     if files:
         out.append('<p class="muted">%s</p>' % ", ".join(esc(f) for f in files))
+
+    if servers:
+        out.append("<h2>Servers</h2><table><tr><th>Started</th><th>Server</th><th>Version and hardware</th></tr>")
+        for info in servers:
+            out.append("<tr><td>%s</td><td>%s</td><td>%s</td></tr>" % (
+                esc(_time(info["started"])), esc(info["server"]), esc(describe(info))))
+        out.append("</table>")
 
     if insights:
         out.append("<h2>Insights</h2>")

@@ -13,6 +13,7 @@ added, so readers should ignore keys they do not know.
 | `period` | `first` and `last` timestamp (`YYYY-MM-DDTHH:MM:SS.mmm`, local time of the log) |
 | `findings` | list of findings, in time order |
 | `incidents` | availability group failover incidents |
+| `servers` | one object per server start found in the logs (version, edition, OS, CPUs, memory, ...) |
 | `insights` | readings that combine several findings (see below) |
 | `bursts` | bursts of findings against the rolling baseline |
 | `summaries` | `io` (slow I/O per file) and `logins` (failures per client) |
