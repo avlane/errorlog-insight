@@ -11,7 +11,7 @@ already extracted. They say how sure they are: "high" when the evidence is
 direct, "medium" when it is circumstantial.
 """
 from dataclasses import dataclass, field
-from datetime import timedelta
+from datetime import date, timedelta
 
 from .incidents import find_incidents
 from .model import severity_rank
@@ -370,4 +370,55 @@ def login_failure_sources(findings):
                     client, n, (row["last"] - row["first"]).total_seconds() / 3600.0, state),
                 "warning", "medium", row["findings"],
                 "A service keeps retrying. %s %s" % (cause, fix)))
+    return out
+
+
+# ---------------------------------------------------------------------------
+# Versions that are out of support (or about to be)
+# ---------------------------------------------------------------------------
+
+# End of extended support per release, as published by Microsoft. Versions
+# that are not listed are not judged.
+EXTENDED_SUPPORT_END = {
+    2012: date(2022, 7, 12),
+    2014: date(2024, 7, 9),
+    2016: date(2026, 7, 14),
+    2017: date(2027, 10, 12),
+    2019: date(2030, 1, 8),
+    2022: date(2033, 1, 11),
+}
+SUPPORT_WARNING = timedelta(days=365)
+
+
+@insight_rule
+def version_support(findings):
+    """Judge each start against the date it happened, not against today, so old logs stay reproducible."""
+    out = []
+    for startup in of_code(findings, "startup"):
+        year = startup.details["version_year"]
+        ends = EXTENDED_SUPPORT_END.get(year)
+        if ends is None:
+            continue
+        when = startup.entry.timestamp.date()
+        build = startup.details["build"]
+        if when > ends:
+            out.append(Insight(
+                "version-unsupported",
+                "SQL Server %d (%s) was out of support when it started: extended support ended %s" % (year, build, ends.isoformat()),
+                "error", "high", [startup],
+                "No security fixes are issued for this version any more. Plan the upgrade; until then restrict "
+                "network access to it."))
+        elif ends - when <= SUPPORT_WARNING:
+            out.append(Insight(
+                "version-ending",
+                "SQL Server %d (%s) reaches the end of extended support on %s" % (year, build, ends.isoformat()),
+                "warning", "high", [startup],
+                "Schedule the upgrade before that date."))
+        if startup.details["level"] == "RTM":
+            out.append(Insight(
+                "version-rtm",
+                "SQL Server %d is running the original RTM build (%s) with no cumulative update" % (year, build),
+                "warning", "medium", [startup],
+                "Cumulative updates carry most of the fixes for a release, including several for the "
+                "problems in this log. Apply the latest one after testing."))
     return out

@@ -252,5 +252,42 @@ class LoginInsightTests(unittest.TestCase):
         self.assertEqual([i for i in find_insights(findings_of(("A", "backup_failures.log"))) if i.code.startswith("login")], [])
 
 
+def startup_findings(year, level, when):
+    from datetime import datetime
+    from errorlog_insight.model import Entry
+    text = ("Microsoft SQL Server %d (%s) (KB4577194) - 15.0.4073.23 (X64) \n\tEnterprise Edition (64-bit) on "
+            "Windows Server 2019 Standard 10.0 <X64>" % (year, level))
+    return classify([Entry(datetime(*when), "Server", text, replica="S")])
+
+
+class SupportTests(unittest.TestCase):
+    def codes(self, year, level, when):
+        return [i.code for i in find_insights(startup_findings(year, level, when)) if i.code.startswith("version")]
+
+    def test_out_of_support_when_it_started(self):
+        self.assertEqual(self.codes(2014, "SP3-CU4", (2024, 8, 1, 6, 0)), ["version-unsupported"])
+
+    def test_the_same_version_was_fine_earlier(self):
+        self.assertEqual(self.codes(2014, "SP3-CU4", (2024, 6, 1, 6, 0)), ["version-ending"])
+
+    def test_far_from_the_end(self):
+        self.assertEqual(self.codes(2019, "RTM-CU8", (2021, 3, 1, 6, 0)), [])
+
+    def test_last_day_still_counts_as_supported(self):
+        self.assertEqual(self.codes(2012, "SP4", (2022, 7, 12, 6, 0)), ["version-ending"])
+
+    def test_rtm_without_cumulative_update(self):
+        self.assertEqual(self.codes(2022, "RTM", (2023, 1, 5, 6, 0)), ["version-rtm"])
+
+    def test_unlisted_versions_are_not_judged(self):
+        self.assertEqual(self.codes(2005, "SP4", (2024, 8, 1, 6, 0)), [])
+
+    def test_details(self):
+        (i,) = [i for i in find_insights(startup_findings(2014, "SP3", (2024, 8, 1, 6, 0))) if i.code == "version-unsupported"]
+        self.assertEqual(i.severity, "error")
+        self.assertIn("extended support ended 2024-07-09", i.title)
+        self.assertEqual(i.evidence[0].code, "startup")
+
+
 if __name__ == "__main__":
     unittest.main()
