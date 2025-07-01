@@ -289,5 +289,20 @@ class SupportTests(unittest.TestCase):
         self.assertEqual(i.evidence[0].code, "startup")
 
 
+class StartupOptionTests(unittest.TestCase):
+    def test_single_user_and_minimal_configuration(self):
+        insights = find_insights(findings_of(("SQLPROD01", "startup_single_user.log")))
+        codes = sorted(i.code for i in insights if i.code.startswith("startup"))
+        self.assertEqual(codes, ["startup-minimal-config", "startup-single-user"])
+        single = next(i for i in insights if i.code == "startup-single-user")
+        self.assertEqual(single.title, "SQLPROD01 was started in single-user mode (-m)")
+        self.assertEqual(single.severity, "warning")
+        self.assertEqual(single.evidence[0].code, "startup-params")
+
+    def test_normal_startup_is_quiet(self):
+        insights = find_insights(findings_of(("SQLPROD01", "startup_2019.log")))
+        self.assertEqual([i for i in insights if i.code.startswith("startup")], [])
+
+
 if __name__ == "__main__":
     unittest.main()

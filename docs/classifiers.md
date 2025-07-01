@@ -163,7 +163,9 @@ more). Turning 3605 on gets a reminder that output goes to the error log.
 
 ## Startup and shutdown
 
-Startup banner (version, level, KB, build, edition, OS), ready for connections,
+Startup banner (version, level, KB, build, edition, OS), startup parameters (the registry and
+command line listings, with trace flags, `-m` single-user and `-f` minimal configuration pulled out),
+ready for connections,
 shutdown (service stop, system shutdown, fatal exception), error log
 reinitialised and database recovery progress. Info, except shutdowns caused by
 a fatal exception, which are critical.

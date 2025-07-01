@@ -11,7 +11,7 @@ it (UTF-16 LE, byte order mark, CRLF). `tools/encode_log.py` converts, and
 
 | fixture | what it shows |
 |---|---|
-| startup_2019, shutdown | banner, recovery, ready, stop request, system shutdown |
+| startup_2019, startup_single_user, shutdown | banner, startup parameters (trace flags, -m, -f), recovery, ready, stop request, system shutdown |
 | login_failures, login_patterns | 18456 with many states; guessing, spraying and a stale service |
 | io_stalls | 833 on data, log, tempdb and a UNC path, plus FlushCache and a VSS freeze |
 | nonyielding | 17883 (cpu-bound and stalled) and 17884 |

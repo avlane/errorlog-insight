@@ -422,3 +422,29 @@ def version_support(findings):
                 "Cumulative updates carry most of the fixes for a release, including several for the "
                 "problems in this log. Apply the latest one after testing."))
     return out
+
+
+# ---------------------------------------------------------------------------
+# Unusual startup options
+# ---------------------------------------------------------------------------
+
+@insight_rule
+def startup_options(findings):
+    out = []
+    for params in of_code(findings, "startup-params"):
+        d = params.details
+        if d["single_user"]:
+            out.append(Insight(
+                "startup-single-user",
+                "%s was started in single-user mode (-m)" % (server_of(params) or "the instance"),
+                "warning", "high", [params],
+                "Only one connection is accepted, and an application or monitoring tool can take it before "
+                "you do. Restart normally once the maintenance is done."))
+        if d["minimal_configuration"]:
+            out.append(Insight(
+                "startup-minimal-config",
+                "%s was started with minimal configuration (-f)" % (server_of(params) or "the instance"),
+                "warning", "high", [params],
+                "Minimal configuration starts in single-user mode with reduced memory and is meant for repairing "
+                "a bad configuration setting. Restart normally afterwards."))
+    return out
