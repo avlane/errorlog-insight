@@ -2,6 +2,7 @@
 import argparse
 import os
 import sys
+from datetime import timedelta
 
 from . import __version__
 from .bursts import find_bursts
@@ -33,6 +34,27 @@ def choose_format(args):
     return "text"
 
 
+def shift_to_utc(loaded):
+    """Move every server's entries to UTC using the "UTC adjustment" line of its startup.
+
+    Returns the labels for which no such line was found (their entries are not touched). The line is
+    written once per start, so a daylight saving change in the middle of a long-running instance is not
+    followed.
+    """
+    offsets = {}
+    for label, _, entries in loaded:
+        for info in collect_server_info(entries):
+            if "utc_offset_minutes" in info and label not in offsets:
+                offsets[label] = info["utc_offset_minutes"]
+    unknown = set()
+    for label, _, entries in loaded:
+        if label in offsets:
+            apply_offset(entries, timedelta(minutes=-offsets[label]))
+        else:
+            unknown.add(label)
+    return unknown
+
+
 def build_parser():
     p = argparse.ArgumentParser(
         prog="errorlog-insight",
@@ -53,6 +75,9 @@ def build_parser():
                    help="fewest events in one bucket that can count as a burst (default: 5)")
     p.add_argument("--burst-factor", type=float, default=None, metavar="X",
                    help="how many times the recent average a bucket must reach (default: 3)")
+    p.add_argument("--utc", action="store_true",
+                   help="convert times to UTC using the 'UTC adjustment' line of each server's startup "
+                        "(applied after --offset and before --since/--until)")
     p.add_argument("--no-insights", action="store_true",
                    help="leave out the insights section (readings that combine several findings)")
     p.add_argument("--since", metavar="WHEN",
@@ -100,24 +125,26 @@ def main(argv=None, out=None):
     except ValueError as exc:
         sys.stderr.write("errorlog-insight: %s\n" % exc)
         return 2
-    per_file = []
-    used_offsets = set()
-    all_findings, unknown = [], []
-    paths = []
-    for label, path in expand_sources(args.files):
-        paths.append(path)
-        entries = read_entries(path, replica=label)
+    loaded = [(label, path, read_entries(path, replica=label)) for label, path in expand_sources(args.files)]
+    paths = [path for _, path, _ in loaded]
+    for label, _, entries in loaded:
         if label in offsets:
             apply_offset(entries, offsets[label])
-            used_offsets.add(label)
+    if set(offsets) - {label for label, _, _ in loaded}:
+        missing = sorted(set(offsets) - {label for label, _, _ in loaded})
+        sys.stderr.write("errorlog-insight: --offset names no input file: %s\n" % ", ".join(missing))
+        return 2
+    if args.utc:
+        for label in sorted(shift_to_utc(loaded)):
+            sys.stderr.write("errorlog-insight: no UTC adjustment line for %s; its times are left as they are\n" % label)
+    per_file = []
+    all_findings, unknown = [], []
+    for _, _, entries in loaded:
         entries = in_window(entries, since, until)
         found = classify(entries)
         per_file.append(entries)
         all_findings.extend(found)
         unknown.extend(unclassified(entries, found))
-    if set(offsets) - used_offsets:
-        sys.stderr.write("errorlog-insight: --offset names no input file: %s\n" % ", ".join(sorted(set(offsets) - used_offsets)))
-        return 2
     entries = drop_duplicate_entries(merge_entries(*per_file))
     all_findings = drop_duplicate_findings(merge_findings(all_findings))
     unknown = drop_duplicate_entries(unknown)

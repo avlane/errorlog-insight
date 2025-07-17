@@ -49,9 +49,13 @@ Options:
 * Give a file a name with `LABEL=FILE`, for example `SQLPROD01=ERRORLOG SQLDR02=dr02/ERRORLOG.1`;
   the label is used as the replica in merged output (the default is the file name), and a
   label in front of a wildcard applies to every file it matches.
+* `--utc` converts the times to UTC with the `UTC adjustment` line each start writes, so logs
+  from servers in different time zones line up. (The line is written once per start: a daylight
+  saving change while the instance keeps running is not followed.) A server whose log has no such
+  line is left as it is, with a warning.
 * `--since WHEN` and `--until WHEN` keep only the entries in a window (`2024-05-14`,
   `2024-05-14 01:30`, `2024-05-14T01:30:15`; `--until` is exclusive). The window is applied
-  before anything is classified.
+  before anything is classified, to the times as shown (after `--offset` and `--utc`).
 * `--offset LABEL=+2s` shifts one server's timestamps (units `ms`, `s`, `m`, `h`) when its clock
   is off, so the merged order of a failover is right.
 * `--timeline` lists the findings of all given files (for example the logs of both AG
