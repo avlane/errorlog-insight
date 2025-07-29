@@ -228,10 +228,11 @@ def render_html(entries, findings, files=(), unknown=(), top=10, bursts=(), time
 
     clusters = cluster_entries(unknown)
     if clusters:
-        out.append("<h2>Unrecognised messages</h2><table><tr><th>Count</th><th>Template</th><th>First seen</th><th>Last seen</th><th>Processes</th></tr>")
+        out.append("<h2>Unrecognised messages</h2><table><tr><th>Count</th><th>Template</th><th>First seen</th><th>Last seen</th><th>Processes</th><th>Id</th></tr>")
         for c in clusters[:top]:
-            out.append('<tr><td class="num">%d</td><td><code>%s</code></td><td>%s</td><td>%s</td><td>%s</td></tr>' % (
-                c.count, esc(c.template), esc(_time(c.first_seen)), esc(_time(c.last_seen)), esc(", ".join(sorted(c.processes)))))
+            out.append('<tr><td class="num">%d</td><td><code>%s</code></td><td>%s</td><td>%s</td><td>%s</td><td><code>%s</code></td></tr>' % (
+                c.count, esc(c.template), esc(_time(c.first_seen)), esc(_time(c.last_seen)),
+                esc(", ".join(sorted(c.processes))), c.id))
         out.append("</table>")
         if len(clusters) > top:
             out.append('<p class="muted">%d more templates not shown.</p>' % (len(clusters) - top))

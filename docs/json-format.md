@@ -62,5 +62,5 @@ timestamps have no time zone.
 
 ## Unrecognised messages
 
-`template`, `count`, `first_seen`, `last_seen`, `processes` and a `sample` first
+`id` (eight hex digits, a hash of the template, stable between runs), `template`, `count`, `first_seen`, `last_seen`, `processes` and a `sample` first
 line.

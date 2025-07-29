@@ -173,7 +173,7 @@ def _unrecognised_lines(unknown, top):
             seen += " .. " + (c.last_seen.strftime("%H:%M:%S") if c.last_seen.date() == c.first_seen.date()
                               else c.last_seen.strftime("%Y-%m-%d %H:%M:%S"))
         more = ", %d variants" % c.variants if c.variants > 1 else ""
-        lines.append("        %s  %s%s" % (seen, ", ".join(sorted(c.processes)), more))
+        lines.append("        %s  %s%s  [%s]" % (seen, ", ".join(sorted(c.processes)), more, c.id))
     if len(clusters) > top:
         lines.append("  ... and %d more templates" % (len(clusters) - top))
     return lines
@@ -201,6 +201,7 @@ def finding_to_dict(f):
 
 def cluster_to_dict(c):
     return {
+        "id": c.id,
         "template": c.template,
         "count": c.count,
         "first_seen": _iso(c.first_seen),

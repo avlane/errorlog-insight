@@ -2,7 +2,7 @@ import unittest
 from datetime import datetime
 
 from errorlog_insight.classify import classify, unclassified
-from errorlog_insight.cluster import cluster_entries, mask, similarity
+from errorlog_insight.cluster import cluster_entries, mask, similarity, template_id
 from errorlog_insight.model import Entry
 from errorlog_insight.reader import parse_entries, read_entries
 from tests.helpers import fixture
@@ -116,6 +116,28 @@ class SimilarityTests(unittest.TestCase):
         self.assertEqual(similarity(["a", "b"], ["a", "c"]), 0.5)
         self.assertEqual(similarity(["a", "<*>"], ["a", "c"]), 1.0)
         self.assertEqual(similarity(["a"], ["a", "b"]), 0.0)
+
+
+class TemplateIdTests(unittest.TestCase):
+    def test_id_is_stable_and_short(self):
+        self.assertEqual(template_id("Starting up database '<STR>'."), template_id("Starting up database '<STR>'."))
+        self.assertRegex(template_id("anything"), r"^[0-9a-f]{8}$")
+
+    def test_known_value(self):
+        # pinned so a change of the hash (which would invalidate saved ids) is noticed
+        self.assertEqual(template_id("Starting up database '<STR>'."), "669b9531")
+
+    def test_different_templates_differ(self):
+        self.assertNotEqual(template_id("a b c d"), template_id("a b c e"))
+
+    def test_cluster_id_follows_its_template(self):
+        (c,) = cluster_entries([entry("Starting up database 'A'.")])
+        self.assertEqual(c.id, template_id(c.template))
+
+    def test_same_message_in_two_runs_has_the_same_id(self):
+        one = cluster_entries([entry("Starting up database 'A'.", 1)])[0]
+        two = cluster_entries([entry("Starting up database 'B'.", 9), entry("Other thing happened here now", 3)])
+        self.assertIn(one.id, [c.id for c in two])
 
 
 if __name__ == "__main__":

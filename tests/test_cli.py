@@ -49,8 +49,8 @@ class CliTests(unittest.TestCase):
         section = text.split("Unrecognised messages")[1].splitlines()
         # x2 "Using ..." messages from spid53 and spid57
         self.assertIn("2021-09-14 06:10:44 .. 06:12:01  spid53, spid57", section[2])
-        self.assertIn("2021-09-14 07:00:00 .. 07:00:00  spid62", text)
-        self.assertIn("2021-09-14 06:00:02  Server\n", text)
+        self.assertIn("2021-09-14 07:00:00 .. 07:00:00  spid62  [", text)
+        self.assertRegex(text, r"2021-09-14 06:00:02  Server  \[[0-9a-f]{8}\]\n")
 
     def test_top_limits_templates(self):
         _, text = run("noise.log", extra=["--top", "3"])

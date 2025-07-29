@@ -7,6 +7,7 @@ same (same length, same first word, most words equal) are then merged, and the
 words that differ become <*>. There is no learning involved: the masks and the
 similarity rule below are the whole algorithm.
 """
+import hashlib
 import re
 from dataclasses import dataclass, field
 
@@ -37,6 +38,11 @@ MASKS = [
 ]
 
 
+def template_id(template):
+    """Short stable id of a template: the same template gets the same id in every run and on every machine."""
+    return hashlib.blake2s(template.encode("utf-8"), digest_size=4).hexdigest()
+
+
 def mask(text):
     """Return the template of one message (first line only)."""
     line = text.split("\n", 1)[0].strip()
@@ -56,6 +62,10 @@ class Cluster:
     sample: object = None
     processes: set = field(default_factory=set)
     variants: int = 0  # how many distinct masked templates were merged into this one
+
+    @property
+    def id(self):
+        return template_id(self.template)
 
     def add(self, entry):
         self.count += 1
