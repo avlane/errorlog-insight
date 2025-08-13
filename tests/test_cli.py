@@ -52,6 +52,18 @@ class CliTests(unittest.TestCase):
         self.assertIn("2021-09-14 07:00:00 .. 07:00:00  spid62  [", text)
         self.assertRegex(text, r"2021-09-14 06:00:02  Server  \[[0-9a-f]{8}\]\n")
 
+    def test_serious_sounding_messages_come_first_and_are_marked(self):
+        from datetime import datetime
+        from errorlog_insight.model import Entry
+        from errorlog_insight.report import render_text
+        quiet = [Entry(datetime(2025, 8, 12, 10, 0, i), "spid5s", "Resource governor reconfiguration succeeded here") for i in range(5)]
+        odd = [Entry(datetime(2025, 8, 12, 11, 0), "spid9s", "Cannot reach the licensing service at 10.1.1.1")]
+        text = render_text(quiet + odd, [], unknown=quiet + odd)
+        section = text.split("Unrecognised messages")[1].splitlines()
+        self.assertIn("[error?] Cannot reach the licensing service at <IP>", section[1])
+        self.assertIn("x5", section[3])
+        self.assertNotIn("?]", section[3])
+
     def test_top_limits_templates(self):
         _, text = run("noise.log", extra=["--top", "3"])
         self.assertIn("... and 5 more templates", text)

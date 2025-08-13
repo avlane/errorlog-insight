@@ -38,6 +38,31 @@ MASKS = [
 ]
 
 
+# Words that make an unrecognised message worth a look. Checked in this order; the first level that
+# matches wins. This is a guess from vocabulary, nothing more, and the reports mark it with a "?".
+SEVERITY_WORDS = (
+    ("critical", re.compile(r"\b(corrupt\w*|fatal|terminating|assertion|stack dump|access violation)\b", re.I)),
+    ("error", re.compile(r"\b(fail(ed|ure|s)?|error|cannot|can not|unable|denied|time[ds]? ?out|exception|"
+                         r"could not|unexpected|invalid|aborted|refused|rejected)\b", re.I)),
+    ("warning", re.compile(r"\b(warning|deprecated|retry|retries|not enough|low|exceed\w*|stall\w*|slow)\b", re.I)),
+)
+# "found <NUM> errors and repaired <NUM> errors", "no errors", "without errors" are not errors.
+BENIGN_ERROR_PHRASES = re.compile(r"(\bno errors?\b|\bwithout errors?\b|<NUM> errors? and repaired|\b0 errors?\b)", re.I)
+INFORMATIONAL = re.compile(r"(informational message|no user action is required)", re.I)
+
+
+def guess_severity(template):
+    """Guess how serious an unrecognised message is from its words: info, warning, error or critical."""
+    text = BENIGN_ERROR_PHRASES.sub(" ", template)
+    for level, regex in SEVERITY_WORDS:
+        if regex.search(text):
+            # "This is an informational message only" outweighs a stray word, except for the worst words
+            if level != "critical" and INFORMATIONAL.search(template):
+                return "info"
+            return level
+    return "info"
+
+
 def template_id(template):
     """Short stable id of a template: the same template gets the same id in every run and on every machine."""
     return hashlib.blake2s(template.encode("utf-8"), digest_size=4).hexdigest()
@@ -66,6 +91,10 @@ class Cluster:
     @property
     def id(self):
         return template_id(self.template)
+
+    @property
+    def severity_guess(self):
+        return guess_severity(self.template)
 
     def add(self, entry):
         self.count += 1

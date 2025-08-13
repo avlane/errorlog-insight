@@ -5,7 +5,7 @@ import json
 from . import __version__
 
 from .classify import LABELS
-from .cluster import cluster_entries
+from .cluster import cluster_entries, guess_severity
 from .model import severity_rank
 from .serverinfo import describe
 from .summaries import io_summary, login_summary
@@ -161,13 +161,20 @@ def _burst_lines(bursts):
     return lines
 
 
-def _unrecognised_lines(unknown, top):
+def ranked_clusters(unknown):
+    """Template groups, the ones that sound serious first, then by count."""
     clusters = cluster_entries(unknown)
+    return sorted(clusters, key=lambda c: -severity_rank(c.severity_guess))  # stable: count order is kept inside a level
+
+
+def _unrecognised_lines(unknown, top):
+    clusters = ranked_clusters(unknown)
     if not clusters:
         return []
     lines = ["", "Unrecognised messages (%d entries, %d templates)" % (len(unknown), len(clusters))]
     for c in clusters[:top]:
-        lines.append("  x%-4d %s" % (c.count, c.template))
+        guess = " [%s?]" % c.severity_guess if c.severity_guess != "info" else ""
+        lines.append("  x%-4d%s %s" % (c.count, guess, c.template))
         seen = c.first_seen.strftime("%Y-%m-%d %H:%M:%S")
         if c.last_seen != c.first_seen:
             seen += " .. " + (c.last_seen.strftime("%H:%M:%S") if c.last_seen.date() == c.first_seen.date()
@@ -202,6 +209,7 @@ def finding_to_dict(f):
 def cluster_to_dict(c):
     return {
         "id": c.id,
+        "severity_guess": c.severity_guess,
         "template": c.template,
         "count": c.count,
         "first_seen": _iso(c.first_seen),
@@ -259,6 +267,6 @@ def render_json(entries, findings, files=(), unknown=(), top=10, bursts=(), time
             "logins": [dict({k: v for k, v in r.items() if k != "findings"}, first=_iso(r["first"]), last=_iso(r["last"]))
                        for r in login_summary(findings)],
         },
-        "unrecognised": [cluster_to_dict(c) for c in cluster_entries(unknown)[:top]],
+        "unrecognised": [cluster_to_dict(c) for c in ranked_clusters(unknown)[:top]],
     }
     return json.dumps(doc, indent=2) + "\n"

@@ -2,7 +2,7 @@ import unittest
 from datetime import datetime
 
 from errorlog_insight.classify import classify, unclassified
-from errorlog_insight.cluster import cluster_entries, mask, similarity, template_id
+from errorlog_insight.cluster import cluster_entries, guess_severity, mask, similarity, template_id
 from errorlog_insight.model import Entry
 from errorlog_insight.reader import parse_entries, read_entries
 from tests.helpers import fixture
@@ -116,6 +116,36 @@ class SimilarityTests(unittest.TestCase):
         self.assertEqual(similarity(["a", "b"], ["a", "c"]), 0.5)
         self.assertEqual(similarity(["a", "<*>"], ["a", "c"]), 1.0)
         self.assertEqual(similarity(["a"], ["a", "b"]), 0.0)
+
+
+class SeverityGuessTests(unittest.TestCase):
+    def test_words(self):
+        cases = {
+            "Cannot open the file <PATH>": "error",
+            "The operation failed after <NUM> attempts": "error",
+            "Login timed out": "error",
+            "Found corrupt page <NUM>": "critical",
+            "SQL Server is terminating this process": "critical",
+            "Disk space is low on <PATH>": "warning",
+            "Starting up database '<STR>'.": "info",
+            "Recovery is complete.": "info",
+        }
+        for template, expected in cases.items():
+            self.assertEqual(guess_severity(template), expected, template)
+
+    def test_zero_errors_is_not_an_error(self):
+        self.assertEqual(guess_severity("Check finished with no errors"), "info")
+        self.assertEqual(guess_severity("found <NUM> errors and repaired <NUM> errors"), "info")
+
+    def test_informational_message_outweighs_a_weak_word(self):
+        self.assertEqual(guess_severity("Failed attempts were cleared. This is an informational message only."), "info")
+
+    def test_informational_message_does_not_hide_a_critical_word(self):
+        self.assertEqual(guess_severity("Corrupt page repaired. This is an informational message only."), "critical")
+
+    def test_cluster_property(self):
+        (c,) = cluster_entries([entry("Cannot open the file C:\\x.bak now")])
+        self.assertEqual(c.severity_guess, "error")
 
 
 class TemplateIdTests(unittest.TestCase):
