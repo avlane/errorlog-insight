@@ -52,6 +52,7 @@ def render_text(entries, findings, files=(), unknown=(), top=10, bursts=(), time
     if not findings:
         lines.append("Nothing recognised.")
         lines.extend(_incident_lines(incidents))
+        lines.extend(_burst_lines(bursts))
         lines.extend(_unrecognised_lines(unknown, top))
         return "\n".join(lines) + "\n"
 
@@ -155,8 +156,9 @@ def _burst_lines(bursts):
         return []
     lines = ["", "Bursts (well above the recent rate)"]
     for b in bursts:
+        name = b.label or LABELS.get(b.key, b.key)
         lines.append("  %-7s %-24s x%-4d %s .. %s  (baseline %.2f per bucket)" % (
-            b.key, LABELS.get(b.key, b.key), b.count, b.start.strftime("%Y-%m-%d %H:%M"),
+            b.key.replace("template:", ""), name, b.count, b.start.strftime("%Y-%m-%d %H:%M"),
             b.end.strftime("%H:%M"), b.baseline))
     return lines
 
@@ -221,7 +223,7 @@ def cluster_to_dict(c):
 
 
 def burst_to_dict(b):
-    return {"key": b.key, "start": _iso(b.start), "end": _iso(b.end), "count": b.count,
+    return {"key": b.key, "label": b.label, "start": _iso(b.start), "end": _iso(b.end), "count": b.count,
             "peak": b.peak, "baseline": b.baseline}
 
 

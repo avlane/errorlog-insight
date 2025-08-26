@@ -5,7 +5,8 @@ import sys
 from datetime import timedelta
 
 from . import __version__
-from .bursts import find_bursts
+from .bursts import find_bursts, find_template_bursts
+from .cluster import cluster_entries
 from .classify import classify, unclassified
 from .config import ConfigError, load_settings
 from .htmlreport import render_html
@@ -150,7 +151,8 @@ def main(argv=None, out=None):
     unknown = drop_duplicate_entries(unknown)
     floor = severity_rank(settings.min_severity)
     findings = merge_findings([f for f in all_findings if severity_rank(f.severity) >= floor])
-    bursts = find_bursts(findings, settings.bursts)
+    bursts = sorted(find_bursts(findings, settings.bursts) + find_template_bursts(cluster_entries(unknown), settings.bursts),
+                    key=lambda b: (b.start, b.key))
     incidents = find_incidents(all_findings)  # planned failovers are info, so use the unfiltered findings
     insights = [] if args.no_insights else [
         i for i in find_insights(all_findings) if severity_rank(i.severity) >= floor]

@@ -1,0 +1,21 @@
+2025-08-19 09:00:00.10 spid9s      Software Usage Metrics is disabled.
+2025-08-19 14:02:10.00 spid60      Unable to contact the licensing service at 10.1.1.20. Retry 1 of 20 failed.
+2025-08-19 14:02:13.07 spid61      Unable to contact the licensing service at 10.1.1.21. Retry 2 of 20 failed.
+2025-08-19 14:02:16.14 spid62      Unable to contact the licensing service at 10.1.1.22. Retry 3 of 20 failed.
+2025-08-19 14:02:19.21 spid60      Unable to contact the licensing service at 10.1.1.23. Retry 4 of 20 failed.
+2025-08-19 14:02:22.28 spid61      Unable to contact the licensing service at 10.1.1.20. Retry 5 of 20 failed.
+2025-08-19 14:02:25.35 spid62      Unable to contact the licensing service at 10.1.1.21. Retry 6 of 20 failed.
+2025-08-19 14:02:28.42 spid60      Unable to contact the licensing service at 10.1.1.22. Retry 7 of 20 failed.
+2025-08-19 14:02:31.49 spid61      Unable to contact the licensing service at 10.1.1.23. Retry 8 of 20 failed.
+2025-08-19 14:02:34.56 spid62      Unable to contact the licensing service at 10.1.1.20. Retry 9 of 20 failed.
+2025-08-19 14:02:37.63 spid60      Unable to contact the licensing service at 10.1.1.21. Retry 10 of 20 failed.
+2025-08-19 14:02:40.70 spid61      Unable to contact the licensing service at 10.1.1.22. Retry 11 of 20 failed.
+2025-08-19 14:02:43.77 spid62      Unable to contact the licensing service at 10.1.1.23. Retry 12 of 20 failed.
+2025-08-19 14:05:00.00 spid55      Starting up database 'Tmp0'.
+2025-08-19 14:05:05.00 spid55      Starting up database 'Tmp1'.
+2025-08-19 14:05:10.00 spid55      Starting up database 'Tmp2'.
+2025-08-19 14:05:15.00 spid55      Starting up database 'Tmp3'.
+2025-08-19 14:05:20.00 spid55      Starting up database 'Tmp4'.
+2025-08-19 14:05:25.00 spid55      Starting up database 'Tmp5'.
+2025-08-19 14:05:30.00 spid55      Starting up database 'Tmp6'.
+2025-08-19 14:05:35.00 spid55      Starting up database 'Tmp7'.

@@ -222,7 +222,7 @@ def render_html(entries, findings, files=(), unknown=(), top=10, bursts=(), time
         out.append("<h2>Bursts</h2><table><tr><th>Code</th><th>Type</th><th>Start</th><th>End</th><th>Count</th><th>Baseline</th></tr>")
         for b in bursts:
             out.append('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td class="num">%d</td><td class="num">%.2f</td></tr>' % (
-                esc(b.key), esc(LABELS.get(b.key, b.key)), esc(_time(b.start)), esc(_time(b.end)), b.count, b.baseline))
+                esc(b.key.replace("template:", "")), esc(b.label or LABELS.get(b.key, b.key)), esc(_time(b.start)), esc(_time(b.end)), b.count, b.baseline))
         out.append("</table>")
 
     clusters = ranked_clusters(unknown)

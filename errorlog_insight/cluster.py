@@ -87,6 +87,7 @@ class Cluster:
     sample: object = None
     processes: set = field(default_factory=set)
     variants: int = 0  # how many distinct masked templates were merged into this one
+    timestamps: list = field(default_factory=list)
 
     @property
     def id(self):
@@ -98,6 +99,7 @@ class Cluster:
 
     def add(self, entry):
         self.count += 1
+        self.timestamps.append(entry.timestamp)
         if self.first_seen is None or entry.timestamp < self.first_seen:
             self.first_seen = entry.timestamp
         if self.last_seen is None or entry.timestamp > self.last_seen:
@@ -147,6 +149,7 @@ def cluster_entries(entries, threshold=SIMILARITY):
         else:
             target.template = " ".join(merge_words(target.template.split(), words))
             target.count += cluster.count
+            target.timestamps.extend(cluster.timestamps)
             target.variants += cluster.variants
             target.first_seen = min(target.first_seen, cluster.first_seen)
             target.last_seen = max(target.last_seen, cluster.last_seen)

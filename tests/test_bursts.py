@@ -1,8 +1,12 @@
+import io
+import json
 import unittest
 from datetime import datetime, timedelta
 
-from errorlog_insight.bursts import BurstConfig, detect_bursts, find_bursts
-from errorlog_insight.classify import classify
+from errorlog_insight.bursts import BurstConfig, detect_bursts, find_bursts, find_template_bursts
+from errorlog_insight.classify import classify, unclassified
+from errorlog_insight.cli import main
+from errorlog_insight.cluster import cluster_entries
 from errorlog_insight.reader import read_entries
 from tests.helpers import fixture
 
@@ -78,6 +82,42 @@ class FindingBurstTests(unittest.TestCase):
     def test_info_findings_are_ignored(self):
         findings = classify(read_entries(fixture("startup_2019.log")))
         self.assertEqual(find_bursts(findings), [])
+
+
+class TemplateBurstTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        entries = read_entries(fixture("template_burst.log"))
+        cls.clusters = cluster_entries(unclassified(entries, classify(entries)))
+
+    def test_serious_template_bursts(self):
+        bursts = find_template_bursts(self.clusters)
+        self.assertEqual(len(bursts), 1)
+        b = bursts[0]
+        self.assertEqual(b.count, 12)
+        self.assertTrue(b.key.startswith("template:"))
+        self.assertEqual(b.label, "Unable to contact the licensing service at <IP>. Retry <NUM> of <NUM> failed.")
+
+    def test_info_templates_are_ignored(self):
+        # eight 'Starting up database' messages in 35 seconds would be a burst if info templates counted
+        self.assertEqual(sum(1 for c in self.clusters if c.template.startswith("Starting up")), 1)
+        self.assertTrue(all("Starting up" not in b.label for b in find_template_bursts(self.clusters)))
+
+    def test_lower_the_bar_to_include_info(self):
+        labels = [b.label for b in find_template_bursts(self.clusters, min_severity_rank=0)]
+        self.assertTrue(any("Starting up" in label for label in labels))
+
+    def test_cli_shows_template_bursts(self):
+        out = io.StringIO()
+        main([fixture("template_burst.log")], out=out)
+        text = out.getvalue().split("Bursts")[1].split("Unrecognised")[0]
+        self.assertIn("Unable to contact the licensing service at <IP>", text)
+        out = io.StringIO()
+        main([fixture("template_burst.log"), "--json"], out=out)
+        burst = json.loads(out.getvalue())["bursts"][0]
+        self.assertEqual(burst["count"], 12)
+        self.assertIn("licensing service", burst["label"])
+        self.assertTrue(burst["key"].startswith("template:"))
 
 
 if __name__ == "__main__":

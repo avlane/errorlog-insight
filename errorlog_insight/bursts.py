@@ -39,6 +39,7 @@ class Burst:
     count: int
     peak: int
     baseline: float
+    label: str = ""   # human readable name when the key is not a finding code
 
 
 def _bucket_index(ts, width):
@@ -99,4 +100,22 @@ def find_bursts(findings, config=None, min_severity_rank=1):
     bursts = []
     for code, stamps in by_code.items():
         bursts.extend(detect_bursts(stamps, config, key=code))
+    return sorted(bursts, key=lambda b: (b.start, b.key))
+
+
+def find_template_bursts(clusters, config=None, min_severity_rank=1):
+    """Bursts of unrecognised messages, per template group.
+
+    Only templates whose words sound at least as serious as `min_severity_rank` (1 is warning) are
+    considered: a burst of "Starting up database" at startup is expected.
+    """
+    from .model import severity_rank
+
+    bursts = []
+    for cluster in clusters:
+        if severity_rank(cluster.severity_guess) < min_severity_rank:
+            continue
+        for b in detect_bursts(cluster.timestamps, config, key="template:" + cluster.id):
+            b.label = cluster.template
+            bursts.append(b)
     return sorted(bursts, key=lambda b: (b.start, b.key))

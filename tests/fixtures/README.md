@@ -30,6 +30,7 @@ it (UTF-16 LE, byte order mark, CRLF). `tools/encode_log.py` converts, and
 | insight_nonyield | non-yielding schedulers after paged-out memory and during slow I/O; one with no outside cause |
 | insight_ag_suspend | a secondary suspending itself after log full and corruption; one resume, one user suspend |
 | insight_ag_flap | four automatic failovers in forty minutes |
+| template_burst | an unrecognised error message repeating 12 times in a minute, plus quiet noise |
 | traceflags | DBCC TRACEON and TRACEOFF |
 | noise | messages no rule recognises, for the template clustering |
 | sp_readerrorlog.tsv, log_viewer_export.csv | saved grids (tab separated; CSV, newest first) |
