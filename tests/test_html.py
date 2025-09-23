@@ -6,7 +6,7 @@ from html.parser import HTMLParser
 
 from errorlog_insight.classify import classify, unclassified
 from errorlog_insight.cli import main
-from errorlog_insight.htmlreport import activity_svg, esc, render_html
+from errorlog_insight.report.htmlout import activity_svg, esc, render_html
 from errorlog_insight.model import Entry
 from errorlog_insight.reader import read_entries
 from tests.helpers import fixture

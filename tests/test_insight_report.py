@@ -70,7 +70,7 @@ class InsightOutputTests(unittest.TestCase):
 
     def test_html_escapes_evidence(self):
         from datetime import datetime
-        from errorlog_insight.htmlreport import render_html
+        from errorlog_insight.report import render_html
         from errorlog_insight.insights import Insight
         from errorlog_insight.model import Entry, Finding
         f = Finding(Entry(datetime(2025, 5, 6), "x", "y", replica="<b>S</b>"), "topic", "c", "info", "<i>bad</i>")

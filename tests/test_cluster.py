@@ -4,7 +4,7 @@ from datetime import datetime
 from errorlog_insight.classify import classify, unclassified
 from errorlog_insight.cluster import cluster_entries, guess_severity, mask, similarity, template_id
 from errorlog_insight.model import Entry
-from errorlog_insight.reader import parse_entries, read_entries
+from errorlog_insight.reader import read_entries
 from tests.helpers import fixture
 
 

@@ -2,12 +2,12 @@
 import html
 import json
 
-from .classify import LABELS
-from .model import SEVERITIES, severity_rank
-from .report import group_findings, ranked_clusters
-from .serverinfo import describe
-from .summaries import io_summary, login_summary
-from .timeline import default_label
+from ..classify import LABELS
+from ..model import SEVERITIES, severity_rank
+from ..serverinfo import describe
+from ..summaries import io_summary, login_summary
+from ..timeline import default_label
+from .common import group_findings, ranked_clusters
 
 CSS = """
 :root { --bg: #ffffff; --fg: #1d2330; --muted: #5d6677; --line: #d9dde5; --card: #f6f7f9;

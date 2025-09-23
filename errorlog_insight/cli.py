@@ -9,7 +9,6 @@ from .bursts import find_bursts, find_template_bursts
 from .cluster import cluster_entries
 from .classify import classify, unclassified
 from .config import ConfigError, load_settings
-from .htmlreport import render_html
 from .incidents import find_incidents
 from .insights import find_insights
 from .reader import read_entries
@@ -18,7 +17,7 @@ from .sources import drop_duplicate_entries, drop_duplicate_findings, expand_sou
 from .timefilter import in_window, parse_when
 from .timeline import apply_offset, merge_entries, merge_findings, parse_offset
 from .model import SEVERITIES, severity_rank
-from .report import render_json, render_text
+from .report import render_html, render_json, render_text
 
 
 FORMATS = ("text", "json", "html")
