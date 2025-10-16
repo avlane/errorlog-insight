@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         # quoted on purpose: an unquoted 3.10 is read by YAML as the number 3.1
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
