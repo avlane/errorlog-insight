@@ -10,7 +10,9 @@ a timestamp belong to the previous entry.
 import codecs
 import csv
 import io
+import os
 import re
+from collections.abc import Iterable, Iterator
 from datetime import datetime
 
 from .model import Entry
@@ -30,7 +32,7 @@ def _looks_like_utf16_le(data):
     return odd.count(0) >= 0.8 * len(odd)
 
 
-def decode(data):
+def decode(data: bytes) -> str:
     """Decode raw ERRORLOG bytes to text.
 
     SQL Server writes UTF-16 LE with a BOM, but files that were copied while the
@@ -57,7 +59,7 @@ def _timestamp(m):
     return datetime(year, month, day, hour, minute, second, micro)
 
 
-def iter_line_entries(lines, source="", replica=""):
+def iter_line_entries(lines: Iterable[str], source: str = "", replica: str = "") -> Iterator[Entry]:
     """Yield Entry objects from an iterable of physical lines, one entry at a time.
 
     The text of an entry is assembled when the next entry starts, so a file is
@@ -81,7 +83,7 @@ def iter_line_entries(lines, source="", replica=""):
         yield current
 
 
-def parse_entries(text, source="", replica=""):
+def parse_entries(text: str, source: str = "", replica: str = "") -> list[Entry]:
     """Split decoded log text into Entry objects."""
     return list(iter_line_entries(text.splitlines(), source, replica))
 
@@ -170,7 +172,7 @@ def _choose_encoding(head):
     return "utf-8", 0
 
 
-def iter_entries(path, replica=""):
+def iter_entries(path: str | os.PathLike, replica: str = "") -> Iterator[Entry]:
     """Read an ERRORLOG file entry by entry, without loading the whole file.
 
     Saved grids (sp_readerrorlog, Log File Viewer) are small and need the csv
@@ -192,7 +194,7 @@ def iter_entries(path, replica=""):
                 yield entry
 
 
-def read_entries(path, replica=""):
+def read_entries(path: str | os.PathLike, replica: str = "") -> list[Entry]:
     """Read an ERRORLOG file (or saved sp_readerrorlog output) from disk.
 
     `replica` is a free label (server name) stored on every entry, so entries

@@ -113,12 +113,12 @@ def similarity(a, b):
     """Share of positions where two equally long word lists agree (wildcards agree with anything)."""
     if len(a) != len(b) or not a:
         return 0.0
-    same = sum(1 for x, y in zip(a, b) if x == y or x == WILDCARD or y == WILDCARD)
+    same = sum(1 for x, y in zip(a, b, strict=True) if x == y or x == WILDCARD or y == WILDCARD)
     return same / float(len(a))
 
 
 def merge_words(a, b):
-    return [x if x == y else WILDCARD for x, y in zip(a, b)]
+    return [x if x == y else WILDCARD for x, y in zip(a, b, strict=True)]
 
 
 def cluster_entries(entries, threshold=SIMILARITY):

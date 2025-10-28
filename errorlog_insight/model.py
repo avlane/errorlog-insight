@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 
-@dataclass
+@dataclass(slots=True)
 class Entry:
     """One logical ERRORLOG entry (a timestamped line plus its continuation lines)."""
 

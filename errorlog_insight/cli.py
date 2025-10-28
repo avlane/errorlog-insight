@@ -27,11 +27,13 @@ RENDERERS = {"text": render_text, "json": render_json, "html": render_html}
 
 def choose_format(args):
     """--format wins; otherwise the extension of -o decides; otherwise text."""
-    if args.format:
-        return args.format
-    if args.output:
-        return EXTENSION_FORMATS.get(os.path.splitext(args.output)[1].lower(), "text")
-    return "text"
+    match (args.format, args.output):
+        case (str() as chosen, _):
+            return chosen
+        case (None, str() as path):
+            return EXTENSION_FORMATS.get(os.path.splitext(path)[1].lower(), "text")
+        case _:
+            return "text"
 
 
 def shift_to_utc(loaded):
