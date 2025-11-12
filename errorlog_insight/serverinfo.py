@@ -60,6 +60,7 @@ def collect_server_info(entries):
         if edition:
             info["edition"] = edition.group("edition")
             info["os"] = edition.group("os").strip()
+            info["platform"] = "linux" if info["os"].lower().startswith("linux") else "windows"
         for later in ordered[i + 1:]:
             if later.replica != entry.replica or later.timestamp - entry.timestamp > STARTUP_WINDOW:
                 break
@@ -102,13 +103,19 @@ def _tidy(info):
     return out
 
 
+def _short_os(text):
+    """'Windows Server 2019 Standard 10.0 <X64> (Build 17763: ) (Hypervisor)' -> 'Windows Server 2019 Standard 10.0'."""
+    text = re.sub(r"\s*<[^>]*>", "", text)
+    return re.sub(r"\s*\((?:Build [^)]*|Hypervisor)\)", "", text).strip()
+
+
 def describe(info):
     """One line for a report."""
     parts = ["SQL Server %s %s (%s)" % (info["version_year"], info["level"], info["build"])]
     if info.get("edition"):
         parts.append(info["edition"].replace(" (64-bit)", ""))
     if info.get("os"):
-        parts.append(info["os"].split(" (")[0])
+        parts.append(_short_os(info["os"]))
     if "logical_processors" in info:
         parts.append("%d logical CPUs" % info["logical_processors"])
     if "memory_mb" in info:

@@ -34,6 +34,14 @@ more, usually a service with a stale password or database name) and
 *occasional*. Only the credential states 2, 5, 8 and 9 count towards the first
 two patterns.
 
+## Linux
+
+SQL Server on Linux writes the same UTF-16 log. The rules above work on it; the differences are
+handled where they matter: a POSIX path is its own "volume" (its directory) in the slow I/O
+summary, backup device errors on a POSIX path are read as Linux errno values (28 is no space
+left, 13 permission denied) instead of Windows error numbers, and the server description says
+which distribution it runs on.
+
 ## Slow I/O: 833
 
 `SQL Server has encountered N occurrence(s) of I/O requests taking longer than

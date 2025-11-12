@@ -44,7 +44,7 @@ class ServerInfoTests(unittest.TestCase):
     def test_description(self):
         self.assertEqual(
             describe(self.starts[0]),
-            "SQL Server 2019 RTM-CU8 (15.0.4073.23), Enterprise Edition, Windows Server 2019 Standard 10.0 <X64>, "
+            "SQL Server 2019 RTM-CU8 (15.0.4073.23), Enterprise Edition, Windows Server 2019 Standard 10.0, "
             "8 logical CPUs, 64 GB RAM, mixed authentication, virtual machine")
 
     def test_two_starts_and_two_servers(self):

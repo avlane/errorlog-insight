@@ -30,7 +30,9 @@ IO_STALL_RE = re.compile(
 
 
 def volume_of(path):
-    """Drive letter ('E:') or UNC share ('\\\\FILESRV01\\SQLData') of a Windows path."""
+    """Drive letter ('E:'), UNC share ('\\\\FILESRV01\\SQLData') or, for a Linux path, its directory."""
+    if path.startswith("/"):
+        return path.rsplit("/", 1)[0] or "/"
     if path.startswith("\\\\"):
         parts = path.split("\\")
         return "\\\\" + "\\".join(parts[2:4])

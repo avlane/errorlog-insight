@@ -40,6 +40,18 @@ OS_ERROR_ADVICE = {
 }
 
 
+# Linux errno values, used when the device is a POSIX path (Windows error numbers mean something else)
+LINUX_ERRNO_ADVICE = {
+    2: "No such file or directory: the backup folder does not exist or the mount is missing.",
+    5: "Input/output error: the device or mount is failing; check dmesg and the storage.",
+    13: "Permission denied: the mssql user needs write access to the folder (or the NFS export allows it).",
+    24: "Too many open files: raise the open file limit of the sqlservr process.",
+    28: "No space left on device: free space on the backup volume.",
+    30: "Read-only file system: the volume was remounted read-only, often after an I/O error.",
+    122: "Disk quota exceeded for the mssql user.",
+}
+
+
 @rule
 def backup_failed(entry, ctx):
     m = BACKUP_FAILED_RE.search(entry.text)
@@ -68,7 +80,10 @@ def backup_device(entry, ctx):
         "os_error_text": m.group("text"),
         "network": device.startswith("\\\\"),
     }
-    advice = OS_ERROR_ADVICE.get(code, "Look up Windows error %d for the target device." % code)
+    if device.startswith("/"):
+        advice = LINUX_ERRNO_ADVICE.get(code, "Look up errno %d for the target device." % code)
+    else:
+        advice = OS_ERROR_ADVICE.get(code, "Look up Windows error %d for the target device." % code)
     number = "18204" if m.group("create") else "3201"
     title = "Backup device %s: %s" % (device, m.group("text"))
     return Finding(entry, "backup", number, "error", title, details, advice)
