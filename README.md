@@ -122,7 +122,8 @@ factor = 4.0
 ```
 
 See [docs/classifiers.md](docs/classifiers.md) for what each rule extracts and how
-it picks a severity.
+it picks a severity, and [docs/heuristics.md](docs/heuristics.md) for how the grouping, burst
+detection, incidents and insights work and where they can be wrong.
 
 ## Tests
 
