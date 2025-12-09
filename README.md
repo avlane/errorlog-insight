@@ -121,6 +121,21 @@ min = 8
 factor = 4.0
 ```
 
+### Your own rules
+
+A message you care about that no built-in rule knows can be given a rule in the config file
+(TOML `[[rule]]` tables, or INI sections called `[rule:NAME]`). Custom rules are tried before
+the built-in ones; named groups in the pattern become details and can be used in the title.
+
+```toml
+[[rule]]
+name = "Licence server"
+pattern = 'Unable to contact the licensing service at (?P<host>\d+\.\d+\.\d+\.\d+)'
+severity = "error"
+title = "Licence server {host} unreachable"
+advice = "Check the licence server and the firewall."
+```
+
 See [docs/classifiers.md](docs/classifiers.md) for what each rule extracts and how
 it picks a severity, and [docs/heuristics.md](docs/heuristics.md) for how the grouping, burst
 detection, incidents and insights work and where they can be wrong.

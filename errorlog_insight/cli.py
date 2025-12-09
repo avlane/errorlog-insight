@@ -143,7 +143,7 @@ def main(argv=None, out=None):
     all_findings, unknown = [], []
     for _, _, entries in loaded:
         entries = in_window(entries, since, until)
-        found = classify(entries)
+        found = classify(entries, settings.custom_rules)
         per_file.append(entries)
         all_findings.extend(found)
         unknown.extend(unclassified(entries, found))

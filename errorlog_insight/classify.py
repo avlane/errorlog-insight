@@ -18,8 +18,12 @@ def _try_block_rules(entries, i):
     return None
 
 
-def classify(entries):
-    """Run every rule over the entries and return the findings in log order."""
+def classify(entries, extra_rules=()):
+    """Run every rule over the entries and return the findings in log order.
+
+    `extra_rules` (for example rules from the config file) are tried before the built-in ones.
+    """
+    rules = list(extra_rules) + RULES
     ctx = Context()
     findings = []
     i = 0
@@ -33,7 +37,7 @@ def classify(entries):
             i = end
             continue
         ctx.observe(entry)
-        for fn in RULES:
+        for fn in rules:
             finding = fn(entry, ctx)
             if finding is not None:
                 findings.append(finding)

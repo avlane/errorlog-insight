@@ -17,6 +17,7 @@ import configparser
 from dataclasses import dataclass, field
 
 from .bursts import BurstConfig
+from .customrules import RuleError, rules_from_config
 from .model import SEVERITIES
 
 
@@ -29,6 +30,7 @@ class Settings:
     top: int = 10
     min_severity: str = "info"
     bursts: BurstConfig = field(default_factory=BurstConfig)
+    custom_rules: list = field(default_factory=list)
 
 
 def _read_toml(path):
@@ -44,7 +46,7 @@ def _read_toml(path):
 
 
 def _read_ini(path):
-    parser = configparser.ConfigParser()
+    parser = configparser.ConfigParser(interpolation=None)  # patterns may contain %
     if not parser.read(path, encoding="utf-8"):
         raise ConfigError("cannot read config file: %s" % path)
     return {section: dict(parser.items(section)) for section in parser.sections()}
@@ -73,11 +75,17 @@ def settings_from_config(data):
     settings = Settings()
     known = {"report": {"top", "min_severity"}, "bursts": {"min", "factor", "bucket_seconds", "window"}}
     for name in data:
+        if name == "rule" or name.startswith("rule:"):
+            continue  # checked by customrules
         if name not in known:
             raise ConfigError("unknown section [%s]" % name)
         for key in data[name]:
             if key not in known[name]:
                 raise ConfigError("unknown key %r in [%s]" % (key, name))
+    try:
+        settings.custom_rules = rules_from_config(data)
+    except RuleError as exc:
+        raise ConfigError(str(exc))
     report = data.get("report", {})
     if "top" in report:
         settings.top = _number(report, "top", int, 0)
