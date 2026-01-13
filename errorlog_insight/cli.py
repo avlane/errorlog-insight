@@ -5,6 +5,7 @@ import sys
 from datetime import timedelta
 
 from . import __version__
+from .baseline import make_baseline, write_baseline
 from .bursts import find_bursts, find_template_bursts
 from .cluster import cluster_entries
 from .classify import classify, unclassified
@@ -80,6 +81,9 @@ def build_parser():
     p.add_argument("--utc", action="store_true",
                    help="convert times to UTC using the 'UTC adjustment' line of each server's startup "
                         "(applied after --offset and before --since/--until)")
+    p.add_argument("--save-baseline", metavar="FILE",
+                   help="write a summary of this log (finding counts and unrecognised templates) to FILE, "
+                        "to compare later logs with")
     p.add_argument("--no-insights", action="store_true",
                    help="leave out the insights section (readings that combine several findings)")
     p.add_argument("--since", metavar="WHEN",
@@ -157,6 +161,8 @@ def main(argv=None, out=None):
     incidents = find_incidents(all_findings)  # planned failovers are info, so use the unfiltered findings
     insights = [] if args.no_insights else [
         i for i in find_insights(all_findings) if severity_rank(i.severity) >= floor]
+    if args.save_baseline:
+        write_baseline(args.save_baseline, make_baseline(entries, all_findings, unknown, paths))
     render = RENDERERS[choose_format(args)]
     report = render(entries, findings, paths, unknown=unknown, top=settings.top, bursts=bursts,
                     timeline=args.timeline, incidents=incidents, insights=insights,
