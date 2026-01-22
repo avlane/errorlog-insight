@@ -65,7 +65,7 @@ def incident_to_dict(inc):
 
 
 def render_json(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False, incidents=(),
-                insights=(), servers=()):
+                insights=(), servers=(), comparison=None):
     # the findings list is already in time order, so the JSON needs no separate timeline
     first = min((e.timestamp for e in entries), default=None)
     last = max((e.timestamp for e in entries), default=None)
@@ -79,6 +79,13 @@ def render_json(entries, findings, files=(), unknown=(), top=10, bursts=(), time
         "bursts": [burst_to_dict(b) for b in bursts],
         "incidents": [incident_to_dict(i) for i in incidents],
         "insights": [insight_to_dict(i) for i in insights],
+        "comparison": None if comparison is None else {
+            "baseline": comparison["baseline"],
+            "new_codes": comparison["new_codes"],
+            "increased": comparison["increased"],
+            "new_templates": [cluster_to_dict(c) for c in comparison["new_templates"]],
+            "known_templates": comparison["known_templates"],
+        },
         "servers": [dict(info, started=iso(info["started"])) for info in servers],
         "summaries": {
             "io": [dict(r, first=iso(r["first"]), last=iso(r["last"])) for r in io_summary(findings)],

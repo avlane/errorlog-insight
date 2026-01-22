@@ -18,7 +18,7 @@ def _span(entries):
 
 
 def render_text(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False, incidents=(),
-                insights=(), servers=()):
+                insights=(), servers=(), comparison=None):
     lines = ["errorlog-insight report", ""]
     for name in files:
         lines.append("File:     %s" % name)
@@ -33,12 +33,14 @@ def render_text(entries, findings, files=(), unknown=(), top=10, bursts=(), time
         lines.append("")
     if not findings:
         lines.append("Nothing recognised.")
+        lines.extend(_comparison_lines(comparison))
         lines.extend(_incident_lines(incidents))
         lines.extend(_burst_lines(bursts))
         lines.extend(_unrecognised_lines(unknown, top))
         return "\n".join(lines) + "\n"
 
     lines.extend(_insight_lines(insights))
+    lines.extend(_comparison_lines(comparison))
     lines.append("Findings by type")
     groups = group_findings(findings)
     code_width = max(len(code) for code, _ in groups)
@@ -67,6 +69,25 @@ def render_text(entries, findings, files=(), unknown=(), top=10, bursts=(), time
         lines.extend(["", "Timeline"] + ["  " + t for t in timeline_lines(findings)])
     lines.extend(_unrecognised_lines(unknown, top))
     return "\n".join(lines) + "\n"
+
+
+def _comparison_lines(comparison):
+    if comparison is None:
+        return []
+    src = comparison["baseline"]
+    since = " (%s to %s)" % (src["first"][:10], src["last"][:10]) if src.get("first") else ""
+    lines = ["New since the baseline%s" % since]
+    if not (comparison["new_codes"] or comparison["increased"] or comparison["new_templates"]):
+        lines.append("  Nothing new: %d known message group(s)." % comparison["known_templates"])
+    for c in comparison["new_codes"]:
+        lines.append("  new finding type: %s (%s) x%d" % (c["code"], c["label"], c["count"]))
+    for c in comparison["increased"]:
+        lines.append("  more than before: %s (%s) %d -> %d" % (c["code"], c["label"], c["before"], c["now"]))
+    for t in comparison["new_templates"]:
+        guess = " [%s?]" % t.severity_guess if t.severity_guess != "info" else ""
+        lines.append("  new message x%d%s %s" % (t.count, guess, t.template))
+    lines.append("")
+    return lines
 
 
 def _insight_lines(insights):

@@ -138,8 +138,23 @@ def _insight_html(i):
                 "<p>%s</p>" % esc(i.advice) if i.advice else "", rows))
 
 
+def _comparison_html(c):
+    rows = []
+    for item in c["new_codes"]:
+        rows.append("<tr><td>new finding type</td><td>%s (%s)</td><td class=\"num\">%d</td></tr>" % (
+            esc(item["code"]), esc(item["label"]), item["count"]))
+    for item in c["increased"]:
+        rows.append("<tr><td>more than before</td><td>%s (%s)</td><td class=\"num\">%d &rarr; %d</td></tr>" % (
+            esc(item["code"]), esc(item["label"]), item["before"], item["now"]))
+    for t in c["new_templates"]:
+        rows.append("<tr><td>new message</td><td><code>%s</code></td><td class=\"num\">%d</td></tr>" % (esc(t.template), t.count))
+    if not rows:
+        return "<h2>New since the baseline</h2><p>Nothing new: %d known message group(s).</p>" % c["known_templates"]
+    return "<h2>New since the baseline</h2><table><tr><th>What</th><th>Which</th><th>Count</th></tr>%s</table>" % "".join(rows)
+
+
 def render_html(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False, incidents=(),
-                insights=(), servers=()):
+                insights=(), servers=(), comparison=None):
     out = ['<!doctype html>', '<html lang="en">', '<head>', '<meta charset="utf-8">',
            '<meta name="viewport" content="width=device-width, initial-scale=1">',
            "<title>errorlog-insight report</title>", "<style>%s%s</style>" % (CSS, _filter_css()), "</head>", "<body>",
@@ -160,6 +175,9 @@ def render_html(entries, findings, files=(), unknown=(), top=10, bursts=(), time
             out.append("<tr><td>%s</td><td>%s</td><td>%s</td></tr>" % (
                 esc(_time(info["started"])), esc(info["server"]), esc(describe(info))))
         out.append("</table>")
+
+    if comparison is not None:
+        out.append(_comparison_html(comparison))
 
     if insights:
         out.append("<h2>Insights</h2>")

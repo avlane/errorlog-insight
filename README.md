@@ -60,6 +60,9 @@ Options:
   is off, so the merged order of a failover is right.
 * `--timeline` lists the findings of all given files (for example the logs of both AG
   replicas) as one time-ordered list with the file name as the replica column.
+* `--baseline FILE` compares with a baseline saved earlier and adds a "New since the baseline"
+  section: finding types it never had, types that became three times as frequent, and
+  unrecognised messages whose template it has not seen.
 * `--save-baseline FILE` writes a small JSON summary of the log (finding counts per code and the
   unrecognised templates with their ids) to compare a later log with.
 * `--no-insights` leaves out the insights section (see below).

@@ -8,6 +8,7 @@ of everything.
 import json
 
 from . import __version__
+from .classify import LABELS
 from .cluster import cluster_entries
 from .report.common import iso
 
@@ -56,3 +57,45 @@ def read_baseline(path):
     except json.JSONDecodeError as exc:
         raise BaselineError("%s is not a baseline file: %s" % (path, exc))
     return data
+
+
+INCREASE_FACTOR = 3
+INCREASE_MIN = 5
+
+
+def check_baseline(data):
+    """Raise BaselineError unless `data` looks like something write_baseline produced."""
+    if not isinstance(data, dict) or not isinstance(data.get("codes"), dict) or not isinstance(data.get("templates"), dict):
+        raise BaselineError("not a baseline file (no codes and templates)")
+    return data
+
+
+def compare(baseline, findings, unknown):
+    """What is in this log that the baseline does not have.
+
+    * new_codes: finding codes the baseline never saw;
+    * increased: codes now at least INCREASE_FACTOR times as frequent (and at least INCREASE_MIN);
+    * new_templates: unrecognised message groups whose id is not in the baseline, biggest first;
+    * known_templates: how many unrecognised groups are old news.
+    """
+    check_baseline(baseline)
+    now = {}
+    for f in findings:
+        now[f.code] = now.get(f.code, 0) + 1
+    new_codes, increased = [], []
+    for code in sorted(now):
+        before = baseline["codes"].get(code, 0)
+        label = LABELS.get(code, code)
+        if before == 0:
+            new_codes.append({"code": code, "label": label, "count": now[code]})
+        elif now[code] >= INCREASE_MIN and now[code] >= INCREASE_FACTOR * before:
+            increased.append({"code": code, "label": label, "before": before, "now": now[code]})
+    clusters = cluster_entries(unknown)
+    new_templates = [c for c in clusters if c.id not in baseline["templates"]]
+    return {
+        "baseline": baseline.get("source", {}),
+        "new_codes": new_codes,
+        "increased": increased,
+        "new_templates": new_templates,
+        "known_templates": len(clusters) - len(new_templates),
+    }

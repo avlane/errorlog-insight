@@ -13,6 +13,7 @@ added, so readers should ignore keys they do not know.
 | `period` | `first` and `last` timestamp (`YYYY-MM-DDTHH:MM:SS.mmm`, local time of the log) |
 | `findings` | list of findings, in time order |
 | `incidents` | availability group failover incidents |
+| `comparison` | with `--baseline`: what is new since the baseline, otherwise `null` |
 | `servers` | one object per server start found in the logs (version, edition, OS, CPUs, memory, ...) |
 | `insights` | readings that combine several findings (see below) |
 | `bursts` | bursts of findings against the rolling baseline |
@@ -54,6 +55,13 @@ timestamps have no time zone.
 `code`, `title`, `severity`, `confidence` (`low`, `medium` or `high`), `start`, `end`,
 `advice` and `evidence`: a list of references to findings (`timestamp`, `replica`, `line`,
 `code`, `title`), not copies, so the details stay in `findings`.
+
+## Comparison
+
+`baseline` (the `source` block of the baseline file), `new_codes` (`code`, `label`, `count`),
+`increased` (`code`, `label`, `before`, `now`: at least three times as many and at least five),
+`new_templates` (unrecognised message groups, as in `unrecognised`, whose id is not in the
+baseline) and `known_templates`, the number of unrecognised groups that were already there.
 
 ## Bursts
 
