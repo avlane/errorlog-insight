@@ -148,6 +148,8 @@ def _comparison_html(c):
             esc(item["code"]), esc(item["label"]), item["before"], item["now"]))
     for t in c["new_templates"]:
         rows.append("<tr><td>new message</td><td><code>%s</code></td><td class=\"num\">%d</td></tr>" % (esc(t.template), t.count))
+    if not c["templates_compared"]:
+        rows.append("<tr><td colspan=\"3\">The baseline was made with different message grouping rules, so unrecognised messages are not compared.</td></tr>")
     if not rows:
         return "<h2>New since the baseline</h2><p>Nothing new: %d known message group(s).</p>" % c["known_templates"]
     return "<h2>New since the baseline</h2><table><tr><th>What</th><th>Which</th><th>Count</th></tr>%s</table>" % "".join(rows)

@@ -117,6 +117,35 @@ class CompareTests(unittest.TestCase):
         c = self.compare_with(["backup_failures.log"], ["backup_failures.log", "backup_failures.log"])
         self.assertEqual(c["increased"], [])
 
+    def test_a_baseline_from_other_grouping_rules_only_compares_codes(self):
+        base = self.baseline_of("noise.log")
+        base["template_scheme"] = 0
+        _, findings, unknown = analyse("noise.log", "io_stalls.log")
+        c = compare(base, findings, unknown)
+        self.assertFalse(c["templates_compared"])
+        self.assertEqual(c["new_templates"], [])
+        self.assertEqual({x["code"] for x in c["new_codes"]}, {"833", "flushcache", "io-frozen", "io-resumed"})
+
+    def test_newer_baseline_format_is_refused(self):
+        base = self.baseline_of("noise.log")
+        base["schema_version"] = 2
+        with self.assertRaises(BaselineError) as ctx:
+            compare(base, [], [])
+        self.assertIn("newer errorlog-insight", str(ctx.exception))
+
+    def test_schema_version_is_required(self):
+        base = self.baseline_of("noise.log")
+        del base["schema_version"]
+        with self.assertRaises(BaselineError):
+            compare(base, [], [])
+        base["schema_version"] = True
+        with self.assertRaises(BaselineError):
+            compare(base, [], [])
+
+    def test_the_scheme_is_saved(self):
+        from errorlog_insight.cluster import TEMPLATE_SCHEME
+        self.assertEqual(self.baseline_of("noise.log")["template_scheme"], TEMPLATE_SCHEME)
+
     def test_invalid_baseline(self):
         with self.assertRaises(BaselineError):
             compare({"codes": []}, [], [])
@@ -162,6 +191,20 @@ class CliCompareTests(unittest.TestCase):
         self.assertNotIn("New since", text)
         _, text = self.run_cli(fixture("noise.log"), "--json")
         self.assertIsNone(json.loads(text)["comparison"])
+
+    def test_old_scheme_is_explained_in_all_formats(self):
+        with open(self.base, encoding="utf-8") as f:
+            data = json.load(f)
+        data["template_scheme"] = 0
+        with open(self.base, "w", encoding="utf-8") as f:
+            json.dump(data, f)
+        _, text = self.run_cli(fixture("noise.log"), "--baseline", self.base)
+        self.assertIn("different message grouping rules", text)
+        self.assertNotIn("Nothing new", text)
+        _, text = self.run_cli(fixture("noise.log"), "--baseline", self.base, "--json")
+        self.assertFalse(json.loads(text)["comparison"]["templates_compared"])
+        _, text = self.run_cli(fixture("noise.log"), "--baseline", self.base, "--html")
+        self.assertIn("different message grouping rules", text)
 
     def test_bad_baseline_exits_2(self):
         bad = os.path.join(self.tmp.name, "bad.json")

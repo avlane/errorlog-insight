@@ -148,6 +148,29 @@ class SeverityGuessTests(unittest.TestCase):
         self.assertEqual(c.severity_guess, "error")
 
 
+class SchemeGuardTests(unittest.TestCase):
+    """If one of these fails, the masking changed: update the expectations AND bump TEMPLATE_SCHEME in
+    cluster.py, because saved baselines compare templates by id."""
+
+    CASES = {
+        "Login mapped to S-1-5-21-3623811015-3361044348-30300820-1013 for CONTOSO\\jdoe at 2024-11-12 10:11:12.345":
+            "Login mapped to <SID> for <ACCOUNT> at <DATE> <TIME>",
+        "Connection from 10.20.4.77:49152 handle 0x00000A84 id 6f9619ff-8b86-d011-b42d-00c04fc964ff":
+            "Connection from <IP> handle <HEX> id <GUID>",
+        "CLR version v4.0.30319 from C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\.": "CLR version <VER> from <PATH>",
+        "Setting database option RECOVERY to SIMPLE for database 'Staging'.":
+            "Setting database option RECOVERY to SIMPLE for database '<STR>'.",
+        "Restored to LSN 00000a2b:00001c3d:0001 and 120987:44321:37 by spid57s": "Restored to LSN <LSN> and <LSN> by <SPID>",
+        "Opened [Sales] with 12 pages": "Opened [<ID>] with <NUM> pages",
+    }
+
+    def test_masks(self):
+        from errorlog_insight.cluster import TEMPLATE_SCHEME
+        self.assertEqual(TEMPLATE_SCHEME, 1)
+        for text, expected in self.CASES.items():
+            self.assertEqual(mask(text), expected, text)
+
+
 class TemplateIdTests(unittest.TestCase):
     def test_id_is_stable_and_short(self):
         self.assertEqual(template_id("Starting up database '<STR>'."), template_id("Starting up database '<STR>'."))

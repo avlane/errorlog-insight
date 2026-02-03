@@ -77,7 +77,10 @@ def _comparison_lines(comparison):
     src = comparison["baseline"]
     since = " (%s to %s)" % (src["first"][:10], src["last"][:10]) if src.get("first") else ""
     lines = ["New since the baseline%s" % since]
-    if not (comparison["new_codes"] or comparison["increased"] or comparison["new_templates"]):
+    if not comparison["templates_compared"]:
+        lines.append("  The baseline was made with different message grouping rules, so unrecognised messages "
+                     "are not compared; save a new baseline.")
+    elif not (comparison["new_codes"] or comparison["increased"] or comparison["new_templates"]):
         lines.append("  Nothing new: %d known message group(s)." % comparison["known_templates"])
     for c in comparison["new_codes"]:
         lines.append("  new finding type: %s (%s) x%d" % (c["code"], c["label"], c["count"]))

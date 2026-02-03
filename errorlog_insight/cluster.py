@@ -11,6 +11,10 @@ import hashlib
 import re
 from dataclasses import dataclass, field
 
+# Template ids depend on the masks below. Change them and ids change, so a saved baseline would
+# call every old message new: bump this number with any change to MASKS, SIMILARITY or MIN_WORDS.
+TEMPLATE_SCHEME = 1
+
 MAX_TEMPLATE_CHARS = 300
 WILDCARD = "<*>"
 SIMILARITY = 0.7   # share of word positions that must match for two templates to merge

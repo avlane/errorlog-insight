@@ -81,6 +81,7 @@ def render_json(entries, findings, files=(), unknown=(), top=10, bursts=(), time
         "insights": [insight_to_dict(i) for i in insights],
         "comparison": None if comparison is None else {
             "baseline": comparison["baseline"],
+            "templates_compared": comparison["templates_compared"],
             "new_codes": comparison["new_codes"],
             "increased": comparison["increased"],
             "new_templates": [cluster_to_dict(c) for c in comparison["new_templates"]],

@@ -58,7 +58,8 @@ timestamps have no time zone.
 
 ## Comparison
 
-`baseline` (the `source` block of the baseline file), `new_codes` (`code`, `label`, `count`),
+`baseline` (the `source` block of the baseline file), `templates_compared` (false when the baseline was
+made with different grouping rules; then `new_templates` is empty), `new_codes` (`code`, `label`, `count`),
 `increased` (`code`, `label`, `before`, `now`: at least three times as many and at least five),
 `new_templates` (unrecognised message groups, as in `unrecognised`, whose id is not in the
 baseline) and `known_templates`, the number of unrecognised groups that were already there.
