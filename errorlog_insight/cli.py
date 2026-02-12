@@ -138,7 +138,16 @@ def main(argv=None, out=None):
     except BaselineError as exc:
         sys.stderr.write("errorlog-insight: %s\n" % exc)
         return 2
-    loaded = [(label, path, read_entries(path, replica=label)) for label, path in expand_sources(args.files)]
+    loaded = []
+    for label, path in expand_sources(args.files):
+        try:
+            loaded.append((label, path, read_entries(path, replica=label)))
+        except OSError as exc:
+            sys.stderr.write("errorlog-insight: cannot read %s: %s\n" % (path, exc.strerror or exc))
+            return 2
+        except ValueError as exc:  # a saved grid with an unreadable header or date
+            sys.stderr.write("errorlog-insight: %s: %s\n" % (path, exc))
+            return 2
     paths = [path for _, path, _ in loaded]
     for label, _, entries in loaded:
         if label in offsets:
