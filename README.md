@@ -65,6 +65,10 @@ Options:
   unrecognised messages whose template it has not seen.
 * `--save-baseline FILE` writes a small JSON summary of the log (finding counts per code and the
   unrecognised templates with their ids) to compare a later log with.
+* `--redact` replaces IP addresses, account and login names, server names and the input file
+  paths with stable pseudonyms (documentation-range addresses, `DOMAIN1\\user-1`, `login-1`,
+  `server-1`, `file-1`) before anything is analysed, so the report can be shared. Database names,
+  queries and message numbers stay, because the reader needs them. Read the result before you send it.
 * `--no-insights` leaves out the insights section (see below).
 * `--min-severity {info,warning,error,critical}` hides the less interesting findings.
 

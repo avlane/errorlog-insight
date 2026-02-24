@@ -13,6 +13,7 @@ from .config import ConfigError, load_settings
 from .incidents import find_incidents
 from .insights import find_insights
 from .reader import read_entries
+from .redact import Redactor
 from .serverinfo import collect_server_info
 from .sources import drop_duplicate_entries, drop_duplicate_findings, expand_sources
 from .timefilter import in_window, parse_when
@@ -86,6 +87,9 @@ def build_parser():
     p.add_argument("--save-baseline", metavar="FILE",
                    help="write a summary of this log (finding counts and unrecognised templates) to FILE, "
                         "to compare later logs with")
+    p.add_argument("--redact", action="store_true",
+                   help="replace IP addresses, account and login names, server names and file paths with "
+                        "stable pseudonyms before analysing, so the report can be shared")
     p.add_argument("--no-insights", action="store_true",
                    help="leave out the insights section (readings that combine several findings)")
     p.add_argument("--since", metavar="WHEN",
@@ -159,6 +163,12 @@ def main(argv=None, out=None):
     if args.utc:
         for label in sorted(shift_to_utc(loaded)):
             sys.stderr.write("errorlog-insight: no UTC adjustment line for %s; its times are left as they are\n" % label)
+    if args.redact:
+        redactor = Redactor()
+        redactor.learn([e for _, _, entries in loaded for e in entries], [label for label, _, _ in loaded])
+        for _, _, entries in loaded:
+            redactor.entries(entries)
+        paths = [redactor.file(path) for path in paths]
     per_file = []
     all_findings, unknown = [], []
     for _, _, entries in loaded:
