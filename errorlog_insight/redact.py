@@ -42,6 +42,7 @@ class Redactor:
         self.logins = {}
         self.servers = {}
         self.files = {}
+        self.originals = {}      # (kind, lower-cased key) -> first spelling seen
         self._host_re = None
 
     # --- pseudonyms ------------------------------------------------------
@@ -58,9 +59,11 @@ class Redactor:
         return "198.18.%d.%d" % ((n // 250) % 256, n % 250 + 1)
 
     def server(self, name):
+        self.originals.setdefault(("server", name.lower()), name)
         return "server-%d" % self._number(self.servers, name.lower())
 
     def account(self, domain, name):
+        self.originals.setdefault(("account", name.lower()), name)
         return "DOMAIN%d\\user-%d" % (self._number(self.domains, domain.upper()), self._number(self.accounts, name.lower()))
 
     def login(self, name):
@@ -69,10 +72,32 @@ class Redactor:
         if "\\" in name:
             domain, _, user = name.partition("\\")
             return self.account(domain, user)
+        self.originals.setdefault(("login", name.lower()), name)
         return "login-%d" % self._number(self.logins, name.lower())
 
     def file(self, path):
         return "file-%d" % self._number(self.files, str(path))
+
+    def mapping(self):
+        """Pseudonym -> original value, by kind, so the owner can read the redacted report.
+
+        Servers, logins and accounts are stored lower-cased because they were matched without regard to
+        case; the first spelling seen is kept in `originals`.
+        """
+        out = {"ip": {}, "domain": {}, "account": {}, "login": {}, "server": {}, "file": {}}
+        for ip in self.ips:
+            out["ip"][self.ip(ip)] = ip
+        for name, n in self.domains.items():
+            out["domain"]["DOMAIN%d" % n] = name
+        for name, n in self.accounts.items():
+            out["account"]["user-%d" % n] = self.originals.get(("account", name), name)
+        for name, n in self.logins.items():
+            out["login"]["login-%d" % n] = self.originals.get(("login", name), name)
+        for name, n in self.servers.items():
+            out["server"]["server-%d" % n] = self.originals.get(("server", name), name)
+        for name, n in self.files.items():
+            out["file"]["file-%d" % n] = name
+        return out
 
     # --- applying them ---------------------------------------------------
     def learn(self, entries, labels=()):

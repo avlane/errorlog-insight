@@ -1,5 +1,9 @@
+import contextlib
 import io
 import json
+import os
+import stat
+import tempfile
 import unittest
 from datetime import datetime
 
@@ -122,6 +126,53 @@ class CliTests(unittest.TestCase):
         out = io.StringIO()
         main([fixture("login_patterns.log"), "--json"], out=out)
         self.assertIn("10.20.4.50", out.getvalue())
+
+
+class MappingTests(unittest.TestCase):
+    def test_mapping_reverses_every_kind(self):
+        r = Redactor()
+        entries = [entry("Login failed for user 'Bob'. Reason: x. [CLIENT: 10.20.4.77]", "SQLPROD01", "a/ERRORLOG"),
+                   entry("done by CONTOSO\\kwong via \\\\FILESRV01\\share", "SQLDR02", "b/ERRORLOG")]
+        r.learn(entries, ["SQLPROD01", "SQLDR02"])
+        r.entries(entries)
+        m = r.mapping()
+        self.assertEqual(m["ip"], {"192.0.2.1": "10.20.4.77"})
+        self.assertEqual(m["login"], {"login-1": "Bob"})
+        self.assertEqual(m["domain"], {"DOMAIN1": "CONTOSO"})
+        self.assertEqual(m["account"], {"user-1": "kwong"})
+        self.assertEqual(m["server"], {"server-1": "SQLDR02", "server-2": "SQLPROD01", "server-3": "FILESRV01"})
+        self.assertEqual(m["file"], {"file-1": "a/ERRORLOG", "file-2": "b/ERRORLOG"})
+
+    def test_cli_writes_a_private_map(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "map.json")
+            main([fixture("login_failures.log"), "--redact", "--redact-map", path], out=io.StringIO())
+            with open(path, encoding="utf-8") as f:
+                data = json.load(f)
+            mode = stat.S_IMODE(os.stat(path).st_mode)
+        self.assertEqual(data["ip"]["192.0.2.1"], "10.20.4.31")
+        self.assertIn("jdoe", data["account"].values())
+        self.assertEqual(data["file"], {"file-1": fixture("login_failures.log")})
+        if os.name == "posix":
+            self.assertEqual(mode, 0o600)
+
+    def test_an_existing_wide_open_file_is_tightened(self):
+        if os.name != "posix":
+            self.skipTest("POSIX permissions")
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "map.json")
+            with open(path, "w") as f:
+                f.write("old")
+            os.chmod(path, 0o644)
+            main([fixture("noise.log"), "--redact", "--redact-map", path], out=io.StringIO())
+            self.assertEqual(stat.S_IMODE(os.stat(path).st_mode), 0o600)
+
+    def test_map_without_redact_is_an_error(self):
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            code = main([fixture("noise.log"), "--redact-map", "x.json"], out=io.StringIO())
+        self.assertEqual(code, 2)
+        self.assertIn("needs --redact", err.getvalue())
 
 
 if __name__ == "__main__":

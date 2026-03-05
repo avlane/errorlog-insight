@@ -1,5 +1,6 @@
 """Command line entry point."""
 import argparse
+import json
 import os
 import sys
 from datetime import timedelta
@@ -36,6 +37,15 @@ def choose_format(args):
             return EXTENSION_FORMATS.get(os.path.splitext(path)[1].lower(), "text")
         case _:
             return "text"
+
+
+def write_private_json(path, data):
+    """Write JSON that only the owner may read (the redaction map undoes the redaction)."""
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as f:
+        json.dump(data, f, indent=2, sort_keys=True)
+        f.write("\n")
+    os.chmod(path, 0o600)  # also when the file already existed with wider permissions
 
 
 def shift_to_utc(loaded):
@@ -90,6 +100,9 @@ def build_parser():
     p.add_argument("--redact", action="store_true",
                    help="replace IP addresses, account and login names, server names and file paths with "
                         "stable pseudonyms before analysing, so the report can be shared")
+    p.add_argument("--redact-map", metavar="FILE",
+                   help="with --redact: write a JSON file that maps each pseudonym back to the original value "
+                        "(keep it private: it undoes the redaction)")
     p.add_argument("--no-insights", action="store_true",
                    help="leave out the insights section (readings that combine several findings)")
     p.add_argument("--since", metavar="WHEN",
@@ -169,6 +182,11 @@ def main(argv=None, out=None):
         for _, _, entries in loaded:
             redactor.entries(entries)
         paths = [redactor.file(path) for path in paths]
+        if args.redact_map:
+            write_private_json(args.redact_map, redactor.mapping())
+    elif args.redact_map:
+        sys.stderr.write("errorlog-insight: --redact-map needs --redact\n")
+        return 2
     per_file = []
     all_findings, unknown = [], []
     for _, _, entries in loaded:
