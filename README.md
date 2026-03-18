@@ -70,6 +70,9 @@ Options:
   `server-1`, `file-1`) before anything is analysed, so the report can be shared. Database names,
   queries and message numbers stay, because the reader needs them. Read the result before you send it. `--redact-map FILE` writes a private (mode 600) JSON file
   that maps the pseudonyms back, for the person who made the report.
+* `--fail-on SEVERITY` exits with status 1 when the log has a finding of at least that severity
+  (it looks at all findings, not only the ones `--min-severity` shows). Exit status 2 means bad
+  arguments or unreadable input; 0 means the report was written and nothing reached the threshold.
 * `--no-insights` leaves out the insights section (see below).
 * `--min-severity {info,warning,error,critical}` hides the less interesting findings.
 

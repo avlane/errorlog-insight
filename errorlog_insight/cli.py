@@ -103,6 +103,9 @@ def build_parser():
     p.add_argument("--redact-map", metavar="FILE",
                    help="with --redact: write a JSON file that maps each pseudonym back to the original value "
                         "(keep it private: it undoes the redaction)")
+    p.add_argument("--fail-on", choices=SEVERITIES, metavar="SEVERITY",
+                   help="exit with status 1 when there is a finding of at least this severity "
+                        "(info, warning, error or critical), for scripts and monitoring")
     p.add_argument("--no-insights", action="store_true",
                    help="leave out the insights section (readings that combine several findings)")
     p.add_argument("--since", metavar="WHEN",
@@ -130,6 +133,7 @@ def _utf8_stdout():
 
 
 def main(argv=None, out=None):
+    """Run the tool. Exit status: 0 done, 1 a finding at or above --fail-on, 2 bad arguments or input."""
     args = build_parser().parse_args(argv)
     if out is None and not args.output:
         out = _utf8_stdout()
@@ -221,6 +225,8 @@ def main(argv=None, out=None):
             f.write(report)
     else:
         out.write(report)
+    if args.fail_on and any(severity_rank(f.severity) >= severity_rank(args.fail_on) for f in all_findings):
+        return 1
     return 0
 
 
