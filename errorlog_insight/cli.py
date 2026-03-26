@@ -204,22 +204,23 @@ def main(argv=None, out=None):
     unknown = drop_duplicate_entries(unknown)
     floor = severity_rank(settings.min_severity)
     findings = merge_findings([f for f in all_findings if severity_rank(f.severity) >= floor])
-    bursts = sorted(find_bursts(findings, settings.bursts) + find_template_bursts(cluster_entries(unknown), settings.bursts),
+    clusters = cluster_entries(unknown)  # the slowest step on a big log: do it once
+    bursts = sorted(find_bursts(findings, settings.bursts) + find_template_bursts(clusters, settings.bursts),
                     key=lambda b: (b.start, b.key))
     incidents = find_incidents(all_findings)  # planned failovers are info, so use the unfiltered findings
     insights = [] if args.no_insights else [
         i for i in find_insights(all_findings) if severity_rank(i.severity) >= floor]
     try:
-        comparison = compare(baseline, all_findings, unknown) if baseline is not None else None
+        comparison = compare(baseline, all_findings, unknown, clusters) if baseline is not None else None
     except BaselineError as exc:
         sys.stderr.write("errorlog-insight: %s: %s\n" % (args.baseline, exc))
         return 2
     if args.save_baseline:
-        write_baseline(args.save_baseline, make_baseline(entries, all_findings, unknown, paths))
+        write_baseline(args.save_baseline, make_baseline(entries, all_findings, unknown, paths, clusters))
     render = RENDERERS[choose_format(args)]
     report = render(entries, findings, paths, unknown=unknown, top=settings.top, bursts=bursts,
                     timeline=args.timeline, incidents=incidents, insights=insights,
-                    servers=collect_server_info(entries), comparison=comparison)
+                    servers=collect_server_info(entries), comparison=comparison, clusters=clusters)
     if args.output:
         with open(args.output, "w", encoding="utf-8", newline="\n") as f:
             f.write(report)

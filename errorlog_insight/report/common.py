@@ -17,9 +17,14 @@ def group_findings(findings):
     return sorted(groups.items(), key=lambda kv: (-worst(kv[1]), -len(kv[1]), kv[0]))
 
 
-def ranked_clusters(unknown):
-    """Template groups, the ones that sound serious first, then by count."""
-    clusters = cluster_entries(unknown)
+def ranked_clusters(unknown, clusters=None):
+    """Template groups, the ones that sound serious first, then by count.
+
+    Pass `clusters` (from cluster_entries) when they were computed already; clustering a big log is
+    the slowest part of the report.
+    """
+    if clusters is None:
+        clusters = cluster_entries(unknown)
     return sorted(clusters, key=lambda c: -severity_rank(c.severity_guess))  # stable: count order is kept inside a level
 
 

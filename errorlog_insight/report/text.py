@@ -18,7 +18,7 @@ def _span(entries):
 
 
 def render_text(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False, incidents=(),
-                insights=(), servers=(), comparison=None):
+                insights=(), servers=(), comparison=None, clusters=None):
     lines = ["errorlog-insight report", ""]
     for name in files:
         lines.append("File:     %s" % name)
@@ -36,7 +36,7 @@ def render_text(entries, findings, files=(), unknown=(), top=10, bursts=(), time
         lines.extend(_comparison_lines(comparison))
         lines.extend(_incident_lines(incidents))
         lines.extend(_burst_lines(bursts))
-        lines.extend(_unrecognised_lines(unknown, top))
+        lines.extend(_unrecognised_lines(unknown, top, clusters))
         return "\n".join(lines) + "\n"
 
     lines.extend(_insight_lines(insights))
@@ -67,7 +67,7 @@ def render_text(entries, findings, files=(), unknown=(), top=10, bursts=(), time
     lines.extend(_burst_lines(bursts))
     if timeline:
         lines.extend(["", "Timeline"] + ["  " + t for t in timeline_lines(findings)])
-    lines.extend(_unrecognised_lines(unknown, top))
+    lines.extend(_unrecognised_lines(unknown, top, clusters))
     return "\n".join(lines) + "\n"
 
 
@@ -169,8 +169,8 @@ def _burst_lines(bursts):
     return lines
 
 
-def _unrecognised_lines(unknown, top):
-    clusters = ranked_clusters(unknown)
+def _unrecognised_lines(unknown, top, clusters=None):
+    clusters = ranked_clusters(unknown, clusters)
     if not clusters:
         return []
     lines = ["", "Unrecognised messages (%d entries, %d templates)" % (len(unknown), len(clusters))]

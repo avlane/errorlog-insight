@@ -65,7 +65,7 @@ def incident_to_dict(inc):
 
 
 def render_json(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False, incidents=(),
-                insights=(), servers=(), comparison=None):
+                insights=(), servers=(), comparison=None, clusters=None):
     # the findings list is already in time order, so the JSON needs no separate timeline
     first = min((e.timestamp for e in entries), default=None)
     last = max((e.timestamp for e in entries), default=None)
@@ -93,6 +93,6 @@ def render_json(entries, findings, files=(), unknown=(), top=10, bursts=(), time
             "logins": [dict({k: v for k, v in r.items() if k != "findings"}, first=iso(r["first"]), last=iso(r["last"]))
                        for r in login_summary(findings)],
         },
-        "unrecognised": [cluster_to_dict(c) for c in ranked_clusters(unknown)[:top]],
+        "unrecognised": [cluster_to_dict(c) for c in ranked_clusters(unknown, clusters)[:top]],
     }
     return json.dumps(doc, indent=2) + "\n"

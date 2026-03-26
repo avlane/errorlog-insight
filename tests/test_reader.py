@@ -62,6 +62,26 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(entries[0].text, "hello")
 
 
+class DamagedLineTests(unittest.TestCase):
+    def test_an_impossible_date_is_not_an_entry_start(self):
+        text = ("2026-03-26 10:00:00.10 spid5s      first\n"
+                "2026-02-30 10:00:01.10 spid5s      not a real day\n"
+                "2026-03-26 25:00:00.10 spid5s      not a real hour\n"
+                "2026-03-26 10:00:02.10 spid6s      second\n")
+        entries = parse_entries(text)
+        self.assertEqual([e.text for e in entries],
+                         ["first\n2026-02-30 10:00:01.10 spid5s      not a real day\n"
+                          "2026-03-26 25:00:00.10 spid5s      not a real hour", "second"])
+
+    def test_a_damaged_first_line_is_ignored(self):
+        entries = parse_entries("2026-02-30 10:00:01.10 spid5s      bad\n2026-03-26 10:00:02.10 spid6s      good\n")
+        self.assertEqual([e.text for e in entries], ["good"])
+
+    def test_three_digit_fractions(self):
+        (e,) = parse_entries("2026-03-26 10:00:02.123 spid6s      x\n")
+        self.assertEqual(e.timestamp.microsecond, 123000)
+
+
 class ReaderrorlogTests(unittest.TestCase):
     def test_reads_tab_separated_output(self):
         entries = read_entries(fixture("sp_readerrorlog.tsv"))

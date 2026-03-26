@@ -10,6 +10,7 @@ similarity rule below are the whole algorithm.
 import hashlib
 import re
 from dataclasses import dataclass, field
+from functools import lru_cache
 
 # Template ids depend on the masks below. Change them and ids change, so a saved baseline would
 # call every old message new: bump this number with any change to MASKS, SIMILARITY or MIN_WORDS.
@@ -72,14 +73,22 @@ def template_id(template):
     return hashlib.blake2s(template.encode("utf-8"), digest_size=4).hexdigest()
 
 
-def mask(text):
-    """Return the template of one message (first line only)."""
-    line = text.split("\n", 1)[0].strip()
+@lru_cache(maxsize=65536)
+def _mask_line(line):
     for regex, token in MASKS:
         line = regex.sub(token, line)
     if len(line) > MAX_TEMPLATE_CHARS:
         line = line[:MAX_TEMPLATE_CHARS] + "..."
     return line
+
+
+def mask(text):
+    """Return the template of one message (first line only).
+
+    Logs repeat the same lines with different numbers, but whole lines often repeat too (every
+    "Starting up database 'master'"), so the result is cached per line.
+    """
+    return _mask_line(text.split("\n", 1)[0].strip())
 
 
 @dataclass

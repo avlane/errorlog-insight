@@ -18,9 +18,7 @@ from datetime import datetime
 from .model import Entry
 
 TAB = chr(9)
-LINE_RE = re.compile(
-    r"^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})\.(\d{2,3}) (\S+)(?:\s+(.*))?$"
-)
+LINE_RE = re.compile(r"^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\.(\d{2,3}) (\S+)(?:\s+(.*))?$")
 
 
 def _looks_like_utf16_le(data):
@@ -54,9 +52,8 @@ def decode(data: bytes) -> str:
 
 
 def _timestamp(m):
-    year, month, day, hour, minute, second = (int(m.group(i)) for i in range(1, 7))
-    micro = int(m.group(7).ljust(6, "0"))
-    return datetime(year, month, day, hour, minute, second, micro)
+    # fromisoformat is C code and takes "YYYY-MM-DD HH:MM:SS.ffffff"; ERRORLOG has centiseconds
+    return datetime.fromisoformat("%s.%s" % (m.group(1), m.group(2).ljust(6, "0")))
 
 
 def iter_line_entries(lines: Iterable[str], source: str = "", replica: str = "") -> Iterator[Entry]:
@@ -70,12 +67,18 @@ def iter_line_entries(lines: Iterable[str], source: str = "", replica: str = "")
     for lineno, line in enumerate(lines, 1):
         line = line.rstrip("\r\n").replace("\x00", "")
         m = LINE_RE.match(line)
+        when = None
         if m:
+            try:
+                when = _timestamp(m)
+            except ValueError:
+                pass  # looks like a timestamp but is not a date (a damaged line): keep it as a continuation
+        if when is not None:
             if current is not None:
                 current.text = "\n".join(parts).rstrip()
                 yield current
-            parts = [m.group(9) or ""]
-            current = Entry(_timestamp(m), m.group(8), "", source, lineno, replica)
+            parts = [m.group(4) or ""]
+            current = Entry(when, m.group(3), "", source, lineno, replica)
         elif current is not None:
             parts.append(line)
     if current is not None:

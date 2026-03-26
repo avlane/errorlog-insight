@@ -156,7 +156,7 @@ def _comparison_html(c):
 
 
 def render_html(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False, incidents=(),
-                insights=(), servers=(), comparison=None):
+                insights=(), servers=(), comparison=None, clusters=None):
     out = ['<!doctype html>', '<html lang="en">', '<head>', '<meta charset="utf-8">',
            '<meta name="viewport" content="width=device-width, initial-scale=1">',
            "<title>errorlog-insight report</title>", "<style>%s%s</style>" % (CSS, _filter_css()), "</head>", "<body>",
@@ -245,7 +245,7 @@ def render_html(entries, findings, files=(), unknown=(), top=10, bursts=(), time
                 esc(b.key.replace("template:", "")), esc(b.label or LABELS.get(b.key, b.key)), esc(_time(b.start)), esc(_time(b.end)), b.count, b.baseline))
         out.append("</table>")
 
-    clusters = ranked_clusters(unknown)
+    clusters = ranked_clusters(unknown, clusters)
     if clusters:
         out.append("<h2>Unrecognised messages</h2><table><tr><th>Count</th><th>Looks like</th><th>Template</th><th>First seen</th><th>Last seen</th><th>Processes</th><th>Id</th></tr>")
         for c in clusters[:top]:

@@ -19,13 +19,13 @@ class BaselineError(ValueError):
     pass
 
 
-def make_baseline(entries, findings, unknown, files=()):
+def make_baseline(entries, findings, unknown, files=(), clusters=None):
     """Build the baseline document from one analysis (use the unfiltered findings)."""
     codes = {}
     for f in findings:
         codes[f.code] = codes.get(f.code, 0) + 1
     templates = {}
-    for c in cluster_entries(unknown):
+    for c in (clusters if clusters is not None else cluster_entries(unknown)):
         templates[c.id] = {"template": c.template, "count": c.count}
     stamps = [e.timestamp for e in entries]
     return {
@@ -77,7 +77,7 @@ def check_baseline(data):
     return data
 
 
-def compare(baseline, findings, unknown):
+def compare(baseline, findings, unknown, clusters=None):
     """What is in this log that the baseline does not have.
 
     * new_codes: finding codes the baseline never saw;
@@ -100,7 +100,8 @@ def compare(baseline, findings, unknown):
             new_codes.append({"code": code, "label": label, "count": now[code]})
         elif now[code] >= INCREASE_MIN and now[code] >= INCREASE_FACTOR * before:
             increased.append({"code": code, "label": label, "before": before, "now": now[code]})
-    clusters = cluster_entries(unknown)
+    if clusters is None:
+        clusters = cluster_entries(unknown)
     comparable = baseline.get("template_scheme") == TEMPLATE_SCHEME
     new_templates = [c for c in clusters if c.id not in baseline["templates"]] if comparable else []
     return {
