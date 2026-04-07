@@ -111,6 +111,31 @@ class HtmlTests(unittest.TestCase):
         self.assertNotIn("<script", svg)
         self.assertNotIn("href", svg)
 
+    def test_long_reports_show_only_the_worst_findings(self):
+        entries = read_entries(fixture("login_patterns.log"))
+        findings = classify(entries)
+        self.assertGreater(len(findings), 50)
+        text = render_html(entries, findings, html_limit=10)
+        self.assertEqual(text.count('<details class="sev-'), 10)
+        self.assertIn("%d more finding(s)" % (len(findings) - 10), text)
+        self.assertIn("Login failures by client", text)       # the summaries still use every finding
+
+    def test_limit_zero_shows_everything(self):
+        entries = read_entries(fixture("login_patterns.log"))
+        findings = classify(entries)
+        text = render_html(entries, findings, html_limit=0)
+        self.assertEqual(text.count('<details class="sev-'), len(findings))
+        self.assertNotIn("more finding(s)", text)
+
+    def test_default_limit_is_500(self):
+        from errorlog_insight.report.htmlout import DEFAULT_HTML_LIMIT
+        self.assertEqual(DEFAULT_HTML_LIMIT, 500)
+
+    def test_cli_option(self):
+        out = io.StringIO()
+        main([fixture("login_patterns.log"), "--html", "--html-limit", "5", "--no-insights"], out=out)
+        self.assertEqual(out.getvalue().count('<details class="sev-'), 5)
+
     def test_empty_report(self):
         text = render("noise.log")
         self.assertIn("Nothing recognised.", text)

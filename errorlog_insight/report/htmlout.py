@@ -59,6 +59,10 @@ def _filter_css():
     return "\n".join(rules)
 
 
+# Every finding is a <details> element with its own table of values; 50,000 of them make a page the
+# browser struggles with. The worst ones are shown, the rest is counted.
+DEFAULT_HTML_LIMIT = 500
+
 ACTIVITY_BUCKETS = 60
 ACTIVITY_WIDTH = 600
 ACTIVITY_HEIGHT = 70
@@ -156,7 +160,7 @@ def _comparison_html(c):
 
 
 def render_html(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False, incidents=(),
-                insights=(), servers=(), comparison=None, clusters=None):
+                insights=(), servers=(), comparison=None, clusters=None, html_limit=DEFAULT_HTML_LIMIT):
     out = ['<!doctype html>', '<html lang="en">', '<head>', '<meta charset="utf-8">',
            '<meta name="viewport" content="width=device-width, initial-scale=1">',
            "<title>errorlog-insight report</title>", "<style>%s%s</style>" % (CSS, _filter_css()), "</head>", "<body>",
@@ -206,7 +210,11 @@ def render_html(entries, findings, files=(), unknown=(), top=10, bursts=(), time
         out.append("</div>")
         out.append('<div class="findings">')
         ranked = sorted(findings, key=lambda f: (-severity_rank(f.severity), f.entry.timestamp))
-        out.extend(_finding_html(f) for f in ranked)
+        shown = ranked if not html_limit else ranked[:html_limit]
+        out.extend(_finding_html(f) for f in shown)
+        if len(shown) < len(ranked):
+            out.append('<p class="muted">%d more finding(s) of lower severity or later in time are not shown; '
+                       'the table above counts all of them, and --format json has every one.</p>' % (len(ranked) - len(shown)))
         out.append("</div></div>")
     else:
         out.append("<p>Nothing recognised.</p>")

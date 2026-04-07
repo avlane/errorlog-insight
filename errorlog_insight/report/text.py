@@ -18,7 +18,7 @@ def _span(entries):
 
 
 def render_text(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False, incidents=(),
-                insights=(), servers=(), comparison=None, clusters=None):
+                insights=(), servers=(), comparison=None, clusters=None, html_limit=None):
     lines = ["errorlog-insight report", ""]
     for name in files:
         lines.append("File:     %s" % name)

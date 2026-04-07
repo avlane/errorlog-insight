@@ -73,6 +73,8 @@ Options:
 * `--fail-on SEVERITY` exits with status 1 when the log has a finding of at least that severity
   (it looks at all findings, not only the ones `--min-severity` shows). Exit status 2 means bad
   arguments or unreadable input; 0 means the report was written and nothing reached the threshold.
+* `--html-limit N` caps the expanded findings in the HTML report (default 500, worst first; 0 means
+  all). The tables and the chart always count every finding.
 * `--no-insights` leaves out the insights section (see below).
 * `--min-severity {info,warning,error,critical}` hides the less interesting findings.
 

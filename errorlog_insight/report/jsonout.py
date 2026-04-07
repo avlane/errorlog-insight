@@ -65,7 +65,7 @@ def incident_to_dict(inc):
 
 
 def render_json(entries, findings, files=(), unknown=(), top=10, bursts=(), timeline=False, incidents=(),
-                insights=(), servers=(), comparison=None, clusters=None):
+                insights=(), servers=(), comparison=None, clusters=None, html_limit=None):
     # the findings list is already in time order, so the JSON needs no separate timeline
     first = min((e.timestamp for e in entries), default=None)
     last = max((e.timestamp for e in entries), default=None)

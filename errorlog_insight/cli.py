@@ -21,6 +21,7 @@ from .timefilter import in_window, parse_when
 from .timeline import apply_offset, merge_entries, merge_findings, parse_offset
 from .model import SEVERITIES, severity_rank
 from .report import render_html, render_json, render_text
+from .report.htmlout import DEFAULT_HTML_LIMIT
 
 
 FORMATS = ("text", "json", "html")
@@ -106,6 +107,8 @@ def build_parser():
     p.add_argument("--fail-on", choices=SEVERITIES, metavar="SEVERITY",
                    help="exit with status 1 when there is a finding of at least this severity "
                         "(info, warning, error or critical), for scripts and monitoring")
+    p.add_argument("--html-limit", type=int, default=None, metavar="N",
+                   help="show at most N findings in the HTML report, worst first (default: 500; 0 shows all)")
     p.add_argument("--no-insights", action="store_true",
                    help="leave out the insights section (readings that combine several findings)")
     p.add_argument("--since", metavar="WHEN",
@@ -220,7 +223,8 @@ def main(argv=None, out=None):
     render = RENDERERS[choose_format(args)]
     report = render(entries, findings, paths, unknown=unknown, top=settings.top, bursts=bursts,
                     timeline=args.timeline, incidents=incidents, insights=insights,
-                    servers=collect_server_info(entries), comparison=comparison, clusters=clusters)
+                    servers=collect_server_info(entries), comparison=comparison, clusters=clusters,
+                    html_limit=args.html_limit if args.html_limit is not None else DEFAULT_HTML_LIMIT)
     if args.output:
         with open(args.output, "w", encoding="utf-8", newline="\n") as f:
             f.write(report)
