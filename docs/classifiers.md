@@ -86,6 +86,12 @@ which distribution it runs on.
   skew or locked account, SPN problems, ...).
 * 18452 login from an untrusted domain and 17187 server not ready (warning).
 
+## Autogrow: 5144 and 5145
+
+* 5145 a growth that took long: `file`, `database`, `milliseconds`. Info below 15 s, warning from
+  15 s, with advice on fixed growth sizes and instant file initialization.
+* 5144 a growth that timed out or was cancelled: error.
+
 ## Corruption: 823, 824, 825
 
 * 824 logical consistency error (critical): `kind` (incorrect checksum, torn page, ...),

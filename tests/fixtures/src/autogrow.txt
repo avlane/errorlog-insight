@@ -1,0 +1,14 @@
+2026-04-10 09:14:02.10 spid77      Error: 5145, Severity: 10, State: 1.
+2026-04-10 09:14:02.10 spid77      Autogrow of file 'Sales_log' in database 'Sales' took 3125 milliseconds.  Consider using ALTER DATABASE to set a smaller FILEGROWTH for this file.
+2026-04-10 09:20:41.55 spid81      Error: 5145, Severity: 10, State: 1.
+2026-04-10 09:20:41.55 spid81      Autogrow of file 'Sales_log' in database 'Sales' took 12500 milliseconds.  Consider using ALTER DATABASE to set a smaller FILEGROWTH for this file.
+2026-04-10 09:41:18.02 spid77      Error: 5145, Severity: 10, State: 1.
+2026-04-10 09:41:18.02 spid77      Autogrow of file 'Sales_log' in database 'Sales' took 18020 milliseconds.  Consider using ALTER DATABASE to set a smaller FILEGROWTH for this file.
+2026-04-10 10:02:45.33 spid90      Error: 5145, Severity: 10, State: 1.
+2026-04-10 10:02:45.33 spid90      Autogrow of file 'Sales_Data1' in database 'Sales' took 2210 milliseconds.  Consider using ALTER DATABASE to set a smaller FILEGROWTH for this file.
+2026-04-10 10:30:12.84 spid93      Error: 5144, Severity: 10, State: 1.
+2026-04-10 10:30:12.84 spid93      Autogrow of file 'Reporting_log' in database 'Reporting' was cancelled by user or timed out after 30547 milliseconds.  Use ALTER DATABASE to set a smaller FILEGROWTH value for this file or to explicitly set a new file size.
+2026-04-10 11:05:00.20 spid77      Error: 5145, Severity: 10, State: 1.
+2026-04-10 11:05:00.20 spid77      Autogrow of file 'Sales_log' in database 'Sales' took 21400 milliseconds.  Consider using ALTER DATABASE to set a smaller FILEGROWTH for this file.
+2026-04-10 11:26:34.71 spid77      Error: 5145, Severity: 10, State: 1.
+2026-04-10 11:26:34.71 spid77      Autogrow of file 'Sales_log' in database 'Sales' took 9800 milliseconds.  Consider using ALTER DATABASE to set a smaller FILEGROWTH for this file.
