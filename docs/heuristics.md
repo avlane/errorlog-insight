@@ -67,7 +67,8 @@ inside a freeze or CHECKDB window (confidence high) or within two minutes after 
 log with failing log backups in the previous six hours; a stalled scheduler with a trimmed working
 set in the previous ten minutes or slow I/O in the previous two; a system suspend of AG data
 movement within ten minutes of a local error; three or more failovers of one AG within an hour;
-failed-login patterns per client address; versions judged against Microsoft's published end of
+failed-login patterns per client address; three or more slow growths of one file within six hours
+(and 30 s in all), and a growth that timed out followed within ten minutes by a full log; versions judged against Microsoft's published end of
 support at the date of the log.
 
 Limits: correlation in time is not causation. The confidence says which insights rest on a window

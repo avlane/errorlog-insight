@@ -1,0 +1,6 @@
+2026-04-24 10:30:12.84 spid93      Error: 5144, Severity: 10, State: 1.
+2026-04-24 10:30:12.84 spid93      Autogrow of file 'Reporting_log' in database 'Reporting' was cancelled by user or timed out after 30547 milliseconds.  Use ALTER DATABASE to set a smaller FILEGROWTH value for this file or to explicitly set a new file size.
+2026-04-24 10:31:05.20 spid93      Error: 9002, Severity: 17, State: 2.
+2026-04-24 10:31:05.20 spid93      The transaction log for database 'Reporting' is full due to 'ACTIVE_TRANSACTION'.
+2026-04-24 12:00:05.20 spid94      Error: 9002, Severity: 17, State: 2.
+2026-04-24 12:00:05.20 spid94      The transaction log for database 'Staging' is full due to 'ACTIVE_TRANSACTION'.

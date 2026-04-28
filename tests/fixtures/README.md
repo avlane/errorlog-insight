@@ -33,6 +33,7 @@ it (UTF-16 LE, byte order mark, CRLF). `tools/encode_log.py` converts, and
 | template_burst | an unrecognised error message repeating 12 times in a minute, plus quiet noise |
 | linux_server | SQL Server 2022 on Ubuntu: banner, POSIX paths, errno values, a dump in /var/opt/mssql/log |
 | autogrow | 5145 slow growths of a log file, one data file, and a 5144 that timed out |
+| insight_autogrow_full | a log that timed out growing and then ran full; a later log full nothing explains |
 | traceflags | DBCC TRACEON and TRACEOFF |
 | noise | messages no rule recognises, for the template clustering |
 | sp_readerrorlog.tsv, log_viewer_export.csv | saved grids (tab separated; CSV, newest first) |

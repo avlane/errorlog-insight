@@ -448,3 +448,65 @@ def startup_options(findings):
                 "Minimal configuration starts in single-user mode with reduced memory and is meant for repairing "
                 "a bad configuration setting. Restart normally afterwards."))
     return out
+
+
+# ---------------------------------------------------------------------------
+# Autogrowth that hurts
+# ---------------------------------------------------------------------------
+
+AUTOGROW_WINDOW = timedelta(hours=6)
+AUTOGROW_COUNT = 3
+AUTOGROW_TOTAL_MS = 30000
+GROW_THEN_FULL = timedelta(minutes=10)
+
+
+@insight_rule
+def repeated_slow_autogrow(findings):
+    out = []
+    by_file = {}
+    for f in of_code(findings, "5145"):
+        by_file.setdefault((server_of(f), f.details["database"], f.details["file"]), []).append(f)
+    for (server, database, path), items in sorted(by_file.items()):
+        start = 0
+        reported_until = None
+        for end in range(len(items)):
+            while items[end].entry.timestamp - items[start].entry.timestamp > AUTOGROW_WINDOW:
+                start += 1
+            run = items[start:end + 1]
+            total = sum(f.details["milliseconds"] for f in run)
+            if len(run) < AUTOGROW_COUNT or total < AUTOGROW_TOTAL_MS:
+                continue
+            if reported_until is not None and run[0].entry.timestamp <= reported_until:
+                continue
+            tail = end + 1
+            while tail < len(items) and items[tail].entry.timestamp - items[tail - 1].entry.timestamp <= AUTOGROW_WINDOW:
+                tail += 1
+            run = items[start:tail]
+            reported_until = run[-1].entry.timestamp
+            total = sum(f.details["milliseconds"] for f in run)
+            worst = max(f.details["milliseconds"] for f in run)
+            out.append(Insight(
+                "autogrow-repeated",
+                "%s (%s) grew %d times, %.0f s in all (longest %.1f s)" % (path, database, len(run), total / 1000.0, worst / 1000.0),
+                "warning", "high", run,
+                "Each growth stalls every session that needs space. Pre-size the file for the expected load and "
+                "set a fixed growth in MB instead of a percentage."))
+    return out
+
+
+@insight_rule
+def autogrow_failed_then_log_full(findings):
+    out = []
+    for gave_up in of_code(findings, "5144"):
+        for full in of_code(findings, "9002"):
+            same = server_of(full) == server_of(gave_up) and full.details["database"] == gave_up.details["database"]
+            if same and timedelta(0) <= full.entry.timestamp - gave_up.entry.timestamp <= GROW_THEN_FULL:
+                out.append(Insight(
+                    "autogrow-failed-log-full",
+                    "The log of %s could not grow and then ran full" % gave_up.details["database"],
+                    "critical", "high", [gave_up, full],
+                    "The growth timed out (slow storage or a very large growth step), so the log had no room for "
+                    "new transactions. Free or add disk space, fix the growth size, and find the transaction "
+                    "that holds the log (%s)." % (full.details.get("log_reuse_wait") or "see log_reuse_wait_desc")))
+                break
+    return out

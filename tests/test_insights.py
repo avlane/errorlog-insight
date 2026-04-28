@@ -304,5 +304,57 @@ class StartupOptionTests(unittest.TestCase):
         self.assertEqual([i for i in insights if i.code.startswith("startup")], [])
 
 
+class AutogrowInsightTests(unittest.TestCase):
+    def test_repeated_slow_growth(self):
+        insights = [i for i in find_insights(findings_of(("SQLPROD01", "autogrow.log"))) if i.code.startswith("autogrow")]
+        (rep,) = insights
+        self.assertEqual(rep.code, "autogrow-repeated")
+        self.assertEqual(rep.title, "Sales_log (Sales) grew 5 times, 65 s in all (longest 21.4 s)")
+        self.assertEqual(rep.severity, "warning")
+        self.assertEqual(len(rep.evidence), 5)
+        self.assertIn("fixed growth in MB", rep.advice)
+
+    def test_two_growths_are_not_repeated(self):
+        sales_log = [f for f in findings_of(("S", "autogrow.log")) if f.code == "5145" and f.details["file"] == "Sales_log"]
+        findings = sales_log[:2]
+        self.assertEqual([i for i in find_insights(findings) if i.code == "autogrow-repeated"], [])
+
+    def test_quick_growths_are_not_worth_reporting(self):
+        findings = findings_of(("S", "autogrow.log"))
+        for f in findings:
+            if f.code == "5145":
+                f.details["milliseconds"] = 2000
+        self.assertEqual([i for i in find_insights(findings) if i.code == "autogrow-repeated"], [])
+
+    def test_growths_far_apart_are_not_one_run(self):
+        from datetime import timedelta
+        findings = [f for f in findings_of(("S", "autogrow.log")) if f.code == "5145" and f.details["file"] == "Sales_log"]
+        for n, f in enumerate(findings):
+            for e in f.entries:
+                e.timestamp += timedelta(hours=7 * n)
+        self.assertEqual([i for i in find_insights(findings) if i.code == "autogrow-repeated"], [])
+
+    def test_failed_growth_then_log_full(self):
+        insights = find_insights(findings_of(("SQLPROD01", "insight_autogrow_full.log")))
+        (i,) = [i for i in insights if i.code == "autogrow-failed-log-full"]
+        self.assertEqual(i.severity, "critical")
+        self.assertIn("Reporting", i.title)
+        self.assertEqual([f.code for f in i.evidence], ["5144", "9002"])
+        self.assertIn("ACTIVE_TRANSACTION", i.advice)
+
+    def test_log_full_without_a_failed_growth_is_not_blamed_on_growth(self):
+        insights = find_insights(findings_of(("SQLPROD01", "insight_autogrow_full.log")))
+        self.assertEqual(len([i for i in insights if i.code == "autogrow-failed-log-full"]), 1)   # not Staging
+
+    def test_a_late_log_full_is_not_connected(self):
+        from datetime import timedelta
+        findings = findings_of(("SQLPROD01", "insight_autogrow_full.log"))
+        for f in findings:
+            if f.code == "9002" and f.details["database"] == "Reporting":
+                for e in f.entries:
+                    e.timestamp += timedelta(minutes=30)
+        self.assertEqual([i for i in find_insights(findings) if i.code == "autogrow-failed-log-full"], [])
+
+
 if __name__ == "__main__":
     unittest.main()
