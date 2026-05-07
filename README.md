@@ -75,6 +75,7 @@ Options:
   arguments or unreadable input; 0 means the report was written and nothing reached the threshold.
 * `--html-limit N` caps the expanded findings in the HTML report (default 500, worst first; 0 means
   all). The tables and the chart always count every finding.
+* `--list-codes` prints every finding code the rules can produce, with its name, and exits.
 * `--no-insights` leaves out the insights section (see below).
 * `--min-severity {info,warning,error,critical}` hides the less interesting findings.
 

@@ -9,7 +9,7 @@ from . import __version__
 from .baseline import BaselineError, compare, make_baseline, read_baseline, write_baseline
 from .bursts import find_bursts, find_template_bursts
 from .cluster import cluster_entries
-from .classify import classify, unclassified
+from .classify import LABELS, classify, unclassified
 from .config import ConfigError, load_settings
 from .incidents import find_incidents
 from .insights import find_insights
@@ -75,7 +75,7 @@ def build_parser():
         prog="errorlog-insight",
         description="Summarise SQL Server ERRORLOG files.",
     )
-    p.add_argument("files", nargs="+", metavar="[LABEL=]FILE",
+    p.add_argument("files", nargs="*", metavar="[LABEL=]FILE",
                    help="ERRORLOG files (UTF-16 LE) or saved sp_readerrorlog output; "
                         "a LABEL (for example SQLDR02=ERRORLOG.1) names the server in merged output")
     p.add_argument("--format", choices=FORMATS, default=None,
@@ -123,6 +123,8 @@ def build_parser():
                    help="read defaults for --top, --min-severity and the burst options from a TOML or INI file")
     p.add_argument("-o", "--output", metavar="FILE",
                    help="write the report to FILE (UTF-8) instead of standard output")
+    p.add_argument("--list-codes", action="store_true",
+                   help="list the finding codes the rules can produce, with their names, and exit")
     p.add_argument("--version", action="version", version="%(prog)s " + __version__)
     return p
 
@@ -135,11 +137,27 @@ def _utf8_stdout():
     return stream
 
 
+def code_sort_key(code):
+    """Message numbers first, in numeric order, then the named codes."""
+    return (0, int(code), "") if code.isdigit() else (1, 0, code)
+
+
+def list_codes():
+    width = max(len(code) for code in LABELS)
+    return "".join("%-*s  %s\n" % (width, code, LABELS[code]) for code in sorted(LABELS, key=code_sort_key))
+
+
 def main(argv=None, out=None):
     """Run the tool. Exit status: 0 done, 1 a finding at or above --fail-on, 2 bad arguments or input."""
-    args = build_parser().parse_args(argv)
+    parser = build_parser()
+    args = parser.parse_args(argv)
     if out is None and not args.output:
         out = _utf8_stdout()
+    if args.list_codes:
+        out.write(list_codes())
+        return 0
+    if not args.files:
+        parser.error("no input files (give an ERRORLOG, or --list-codes)")
     try:
         settings = load_settings(args.config, args.top, args.min_severity, args.burst_min, args.burst_factor)
     except ConfigError as exc:
