@@ -37,5 +37,25 @@ class DocumentTests(unittest.TestCase):
             self.assertIn(flag, options)
 
 
+class SampleOutputTests(unittest.TestCase):
+    def test_sample_output_is_current(self):
+        from tools.make_sample import TARGET, render
+        with open(TARGET, encoding="utf-8") as f:
+            self.assertEqual(f.read(), render(), "docs/sample-output.txt is out of date: run python3 tools/make_sample.py")
+
+    def test_render_does_not_depend_on_the_working_directory(self):
+        import tempfile
+        from tools.make_sample import render
+        before = os.getcwd()
+        with tempfile.TemporaryDirectory() as tmp:
+            os.chdir(tmp)
+            try:
+                text = render()
+            finally:
+                os.chdir(before)
+        self.assertEqual(os.getcwd(), before)
+        self.assertIn("Availability group incidents", text)
+
+
 if __name__ == "__main__":
     unittest.main()

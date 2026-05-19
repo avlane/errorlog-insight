@@ -1,0 +1,40 @@
+$ errorlog-insight SQLPROD01=tests/fixtures/ag_lease_failover.log --timeline
+
+errorlog-insight report
+
+File:     tests/fixtures/ag_lease_failover.log
+Period:   2024-05-14 00:50:01 .. 2024-05-14 01:13:02
+Entries:  6
+Findings: 4
+
+Findings by type
+  19407  AG lease expired (19407)         x1    worst: critical
+  17883  Non-yielding (17883)             x1    worst: error
+  1480   AG database role change (1480)   x1    worst: warning
+  19406  AG replica state change (19406)  x1    worst: warning
+
+Most severe
+  [CRITICAL] 2024-05-14 01:13:02  AG_Sales: lease with the cluster expired
+      -> SQL Server and the cluster stopped hearing each other for longer than the lease timeout (20 s by default). Look just before this for a non-yielding scheduler (17883), a stalled VM (snapshot, vMotion), CPU starvation or network loss to the cluster, and check the cluster log.
+  [ERROR] 2024-05-14 01:12:36  Scheduler 2 non-yielding for 70 s (cpu-bound)
+      -> The worker burned CPU the whole time without yielding: look for a runaway scan or loop, a CLR or regex-heavy function, or a bug fixed in a later cumulative update.
+  [WARNING] 2024-05-14 01:13:02  AG_Sales: replica PRIMARY_NORMAL -> RESOLVING_NORMAL
+  [WARNING] 2024-05-14 01:13:02  Sales: PRIMARY -> RESOLVING (automatic failover)
+      -> An unplanned loss of the role: check the WSFC cluster log, quorum and the network between replicas.
+
+Availability group incidents
+  2024-05-14 01:13:02 .. 01:13:02  unplanned failover AG_Sales  SQLPROD01 -> ?
+      databases: Sales
+      likely cause: a non-yielding scheduler kept SQL Server from renewing its lease with the cluster
+      before: 01:12:36 [SQLPROD01] Scheduler 2 non-yielding for 70 s (cpu-bound)
+      before: 01:13:02 [SQLPROD01] AG_Sales: lease with the cluster expired
+
+Timeline
+  2024-05-14 01:12:36.10  SQLPROD01    error    Scheduler 2 non-yielding for 70 s (cpu-bound)
+  2024-05-14 01:13:02.31  SQLPROD01    critical AG_Sales: lease with the cluster expired
+  2024-05-14 01:13:02.40  SQLPROD01    warning  AG_Sales: replica PRIMARY_NORMAL -> RESOLVING_NORMAL
+  2024-05-14 01:13:02.45  SQLPROD01    warning  Sales: PRIMARY -> RESOLVING (automatic failover)
+
+Unrecognised messages (1 entries, 1 templates)
+  x1    Using '<STR>' version '<STR>' to execute extended stored procedure '<STR>'. This is an informational message only; no user action is required.
+        2024-05-14 00:50:01  spid53  [873c0cb4]

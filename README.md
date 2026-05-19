@@ -9,6 +9,12 @@ logical entry can span several physical lines (the startup banner, stack dumps,
 and (as it grows) classifies the well-known messages, groups the unknown ones
 and points at the interesting parts.
 
+## What it looks like
+
+[docs/sample-output.txt](docs/sample-output.txt) is a real run on one of the test fixtures: a
+non-yielding scheduler, the lease with the cluster expiring, and the failover that followed, with
+the likely cause worked out from the events before it. A test regenerates it, so it never goes stale.
+
 ## Install
 
 ```
