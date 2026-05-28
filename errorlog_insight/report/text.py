@@ -1,4 +1,6 @@
 """The plain-text report."""
+import textwrap
+
 from ..classify import LABELS
 from ..model import severity_rank
 from ..serverinfo import describe
@@ -186,3 +188,23 @@ def _unrecognised_lines(unknown, top, clusters=None):
     if len(clusters) > top:
         lines.append("  ... and %d more templates" % (len(clusters) - top))
     return lines
+
+
+def wrap_report(text, width):
+    """Wrap lines longer than `width` at word boundaries, keeping their indentation.
+
+    Continuation lines are indented four spaces deeper than the line they continue, or three for an
+    advice line ("-> ...") so the text lines up under the arrow. width 0 (or less) leaves the text alone.
+    """
+    if not width or width <= 0:
+        return text
+    out = []
+    for line in text.split("\n"):
+        if len(line) <= width:
+            out.append(line)
+            continue
+        indent = line[: len(line) - len(line.lstrip(" "))]
+        extra = "   " if line.lstrip(" ").startswith("-> ") else "    "
+        out.extend(textwrap.wrap(line.strip(), width, initial_indent=indent, subsequent_indent=indent + extra,
+                                 break_long_words=False, break_on_hyphens=False) or [line])
+    return "\n".join(out)

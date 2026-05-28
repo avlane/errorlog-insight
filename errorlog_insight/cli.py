@@ -2,6 +2,7 @@
 import argparse
 import json
 import os
+import shutil
 import sys
 from datetime import timedelta
 
@@ -20,7 +21,7 @@ from .sources import drop_duplicate_entries, drop_duplicate_findings, expand_sou
 from .timefilter import in_window, parse_when
 from .timeline import apply_offset, merge_entries, merge_findings, parse_offset
 from .model import SEVERITIES, severity_rank
-from .report import render_html, render_json, render_text
+from .report import render_html, render_json, render_text, wrap_report
 from .report.htmlout import DEFAULT_HTML_LIMIT
 
 
@@ -109,6 +110,9 @@ def build_parser():
                         "(info, warning, error or critical), for scripts and monitoring")
     p.add_argument("--html-limit", type=int, default=None, metavar="N",
                    help="show at most N findings in the HTML report, worst first (default: 500; 0 shows all)")
+    p.add_argument("--width", type=int, default=None, metavar="N",
+                   help="wrap the text report at N columns (default: the terminal width when writing to a "
+                        "terminal, otherwise no wrapping; 0 turns wrapping off)")
     p.add_argument("--no-insights", action="store_true",
                    help="leave out the insights section (readings that combine several findings)")
     p.add_argument("--since", metavar="WHEN",
@@ -135,6 +139,15 @@ def _utf8_stdout():
     if hasattr(stream, "reconfigure"):
         stream.reconfigure(encoding="utf-8", errors="replace")
     return stream
+
+
+def text_width(args, out):
+    """--width if given; else the terminal width when the report goes to a terminal; else 0 (no wrapping)."""
+    if args.width is not None:
+        return args.width
+    if args.output or not getattr(out, "isatty", lambda: False)():
+        return 0
+    return shutil.get_terminal_size((100, 24)).columns
 
 
 def code_sort_key(code):
@@ -243,6 +256,8 @@ def main(argv=None, out=None):
                     timeline=args.timeline, incidents=incidents, insights=insights,
                     servers=collect_server_info(entries), comparison=comparison, clusters=clusters,
                     html_limit=args.html_limit if args.html_limit is not None else DEFAULT_HTML_LIMIT)
+    if choose_format(args) == "text":
+        report = wrap_report(report, text_width(args, out))
     if args.output:
         with open(args.output, "w", encoding="utf-8", newline="\n") as f:
             f.write(report)
