@@ -64,6 +64,8 @@ Options:
   before anything is classified, to the times as shown (after `--offset` and `--utc`).
 * `--offset LABEL=+2s` shifts one server's timestamps (units `ms`, `s`, `m`, `h`) when its clock
   is off, so the merged order of a failover is right.
+* `--burst-window N` and `--bucket-seconds N` set how many buckets make the baseline (30) and how wide a
+  bucket is (60 seconds). All burst settings can also go in the config file.
 * `--timeline` lists the findings of all given files (for example the logs of both AG
   replicas) as one time-ordered list with the file name as the replica column.
 * `--baseline FILE` compares with a baseline saved earlier and adds a "New since the baseline"

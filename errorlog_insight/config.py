@@ -105,7 +105,16 @@ def settings_from_config(data):
     return settings
 
 
-def load_settings(path=None, top=None, min_severity=None, burst_min=None, burst_factor=None):
+def check_bursts(config):
+    """Reject burst settings that cannot work, wherever they came from (config file or flags)."""
+    for name, value, minimum in (("min", config.min_count, 1), ("window", config.window, 1),
+                                 ("bucket_seconds", config.bucket_seconds, 1), ("factor", config.factor, 0)):
+        if value < minimum:
+            raise ConfigError("burst %s must be at least %s, got %r" % (name, minimum, value))
+
+
+def load_settings(path=None, top=None, min_severity=None, burst_min=None, burst_factor=None,
+                  burst_window=None, bucket_seconds=None):
     """Defaults, then the config file (if any), then explicit command line values (not None)."""
     settings = settings_from_config(read_config(path)) if path else Settings()
     if top is not None:
@@ -116,4 +125,9 @@ def load_settings(path=None, top=None, min_severity=None, burst_min=None, burst_
         settings.bursts.min_count = burst_min
     if burst_factor is not None:
         settings.bursts.factor = burst_factor
+    if burst_window is not None:
+        settings.bursts.window = burst_window
+    if bucket_seconds is not None:
+        settings.bursts.bucket_seconds = bucket_seconds
+    check_bursts(settings.bursts)
     return settings

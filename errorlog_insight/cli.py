@@ -121,6 +121,10 @@ def build_parser():
     p.add_argument("--offset", action="append", default=[], metavar="LABEL=+2s",
                    help="shift one server's timestamps to correct clock skew, for example SQLDR02=-1.5s "
                         "(units: ms, s, m, h; repeatable)")
+    p.add_argument("--burst-window", type=int, default=None, metavar="N",
+                   help="how many buckets of history make the baseline of a burst (default: 30)")
+    p.add_argument("--bucket-seconds", type=int, default=None, metavar="N",
+                   help="width of a burst bucket in seconds (default: 60)")
     p.add_argument("--timeline", action="store_true",
                    help="list the findings of all files in one time-ordered timeline")
     p.add_argument("--config", metavar="FILE",
@@ -172,7 +176,8 @@ def main(argv=None, out=None):
     if not args.files:
         parser.error("no input files (give an ERRORLOG, or --list-codes)")
     try:
-        settings = load_settings(args.config, args.top, args.min_severity, args.burst_min, args.burst_factor)
+        settings = load_settings(args.config, args.top, args.min_severity, args.burst_min, args.burst_factor,
+                                 args.burst_window, args.bucket_seconds)
     except ConfigError as exc:
         sys.stderr.write("errorlog-insight: %s\n" % exc)
         return 2
