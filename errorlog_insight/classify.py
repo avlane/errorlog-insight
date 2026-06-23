@@ -6,7 +6,10 @@ State: X." header that SQL Server writes as a separate entry just before the
 message text) and returns a Finding or None. The first rule that returns a
 Finding wins. Block rules consume a run of entries instead of a single one.
 """
+from collections.abc import Callable, Iterable
+
 from . import rules  # noqa: F401  (registers every rule)
+from .model import Entry, Finding
 from .registry import BLOCK_RULES, ERROR_HEADER_RE, LABELS, RULES, Context  # noqa: F401
 
 
@@ -18,7 +21,7 @@ def _try_block_rules(entries, i):
     return None
 
 
-def classify(entries, extra_rules=()):
+def classify(entries: list[Entry], extra_rules: Iterable[Callable] = ()) -> list[Finding]:
     """Run every rule over the entries and return the findings in log order.
 
     `extra_rules` (for example rules from the config file) are tried before the built-in ones.
@@ -46,7 +49,7 @@ def classify(entries, extra_rules=()):
     return findings
 
 
-def unclassified(entries, findings):
+def unclassified(entries: list[Entry], findings: list[Finding]) -> list[Entry]:
     """Entries no rule accounted for.
 
     The separate 'Error: N, Severity: S, State: X.' header is not interesting

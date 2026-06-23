@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from datetime import date, timedelta
 
 from .incidents import find_incidents
-from .model import severity_rank
+from .model import Finding, severity_rank
 from .rules.login import decode_login_state
 from .summaries import login_summary
 from .timeline import merge_findings
@@ -29,7 +29,7 @@ class Insight:
     title: str
     severity: str
     confidence: str
-    evidence: list = field(default_factory=list)
+    evidence: list[Finding] = field(default_factory=list)
     advice: str = ""
 
     @property
@@ -54,7 +54,7 @@ def of_code(findings, *codes):
     return [f for f in findings if f.code in codes]
 
 
-def find_insights(findings):
+def find_insights(findings: list[Finding]) -> list[Insight]:
     """Run every insight rule. Most severe and most certain first, then by time."""
     ordered = merge_findings(findings)
     found = []

@@ -46,7 +46,7 @@ def _bucket_index(ts, width):
     return int((ts - EPOCH).total_seconds() // width)
 
 
-def detect_bursts(timestamps, config=None, key=""):
+def detect_bursts(timestamps: list[datetime], config: BurstConfig | None = None, key: str = "") -> list[Burst]:
     """Return the Burst objects found in a list of datetimes."""
     config = config or BurstConfig()
     counts = defaultdict(int)

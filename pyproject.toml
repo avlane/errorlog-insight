@@ -18,6 +18,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
     "License :: OSI Approved :: MIT License",
+    "Typing :: Typed",
     "Topic :: Database",
     "Topic :: System :: Logging",
 ]
@@ -27,6 +28,9 @@ errorlog-insight = "errorlog_insight.cli:console_main"
 
 [tool.setuptools.dynamic]
 version = {attr = "errorlog_insight.__version__"}
+
+[tool.setuptools.package-data]
+errorlog_insight = ["py.typed"]
 
 [tool.setuptools.packages.find]
 include = ["errorlog_insight*"]

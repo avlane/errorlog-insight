@@ -7,6 +7,7 @@ took it, and how long no replica held it.
 """
 from datetime import timedelta
 
+from .model import Finding
 from .timeline import merge_findings
 
 INCIDENT_CODES = ("1480", "19406", "ag-transition", "41142")
@@ -26,7 +27,8 @@ def _label(finding):
     return finding.entry.replica or finding.entry.source or "unknown"
 
 
-def find_incidents(findings, gap=INCIDENT_GAP, lookback=LOOKBACK):
+def find_incidents(findings: list[Finding], gap: timedelta = INCIDENT_GAP,
+                   lookback: timedelta = LOOKBACK) -> list[dict]:
     """Return a list of incident dicts, oldest first.
 
     `precursors` lists the suspicious findings (from any server) in the

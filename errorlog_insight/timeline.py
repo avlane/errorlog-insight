@@ -3,6 +3,8 @@ import os
 import re
 from datetime import timedelta
 
+from .model import Entry, Finding
+
 SOURCE_RE = re.compile(r"^(?P<label>[A-Za-z0-9_.-]+)=(?P<path>.+)$")
 
 
@@ -30,7 +32,7 @@ def default_label(path):
     return os.path.splitext(name)[0]
 
 
-def merge_entries(*lists):
+def merge_entries(*lists: list[Entry]) -> list[Entry]:
     """All entries of all lists in time order. Ties keep file order, then line order."""
     tagged = []
     for file_no, entries in enumerate(lists):
@@ -40,7 +42,7 @@ def merge_entries(*lists):
     return [t[3] for t in tagged]
 
 
-def merge_findings(findings):
+def merge_findings(findings: list[Finding]) -> list[Finding]:
     """Findings from any number of files in time order."""
     order = {}
     for f in findings:
