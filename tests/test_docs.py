@@ -37,6 +37,14 @@ class DocumentTests(unittest.TestCase):
             self.assertIn(flag, options)
 
 
+class ChangelogTests(unittest.TestCase):
+    def test_latest_entry_is_the_package_version(self):
+        import errorlog_insight
+        with open(os.path.join(ROOT, "CHANGELOG.md"), encoding="utf-8") as f:
+            headings = re.findall(r"^## (\d+\.\d+(?:\.\d+)?)", f.read(), re.M)
+        self.assertEqual(headings[0], errorlog_insight.__version__)
+
+
 class SampleOutputTests(unittest.TestCase):
     def test_sample_output_is_current(self):
         from tools.make_sample import TARGET, render
