@@ -62,11 +62,12 @@ def summarise_deadlock(entry, dl):
                       % " and ".join(objects))
     if not parallel and dl.processes and all((p.isolation or "").startswith("read committed") for p in dl.processes):
         advice.append("Everything ran at READ COMMITTED; READ_COMMITTED_SNAPSHOT removes reader-writer deadlocks.")
-    if parallel:
-        who = victims[0] if victims else dl.processes[0]
+    who = victims[0] if victims else (dl.processes[0] if dl.processes else None)
+    if parallel and who is not None:
         title = "Parallel query deadlocked with itself: spid %s (ecid %d)" % (who.spid, who.ecid)
+    elif parallel:
+        title = "Parallel query deadlocked with itself (the graph is cut off before its processes)"
     elif victims:
-        who = victims[0]
         title = "Deadlock on %s: victim spid %s%s" % (
             ", ".join(objects) or "unknown objects", who.spid,
             " (%s)" % (who.procedure or who.app) if (who.procedure or who.app) else "")
