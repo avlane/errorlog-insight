@@ -28,13 +28,23 @@ class DocumentTests(unittest.TestCase):
                                 "%s links to %s" % (os.path.basename(path), target))
         self.assertGreater(checked, 4)
 
-    def test_every_documented_option_exists(self):
-        from errorlog_insight.cli import build_parser
-        options = {opt for action in build_parser()._actions for opt in action.option_strings}
+    def readme(self):
         with open(os.path.join(ROOT, "README.md"), encoding="utf-8") as f:
-            text = f.read()
-        for flag in set(re.findall(r"^\* `(--[a-z-]+)", text, re.M)):
-            self.assertIn(flag, options)
+            return f.read()
+
+    def parser_options(self):
+        from errorlog_insight.cli import build_parser
+        return {opt for action in build_parser()._actions for opt in action.option_strings if opt.startswith("--")}
+
+    def test_every_documented_option_exists(self):
+        documented = set(re.findall(r"`(--[a-z][a-z-]*)", self.readme()))
+        self.assertGreater(len(documented), 20)
+        self.assertEqual(sorted(documented - self.parser_options()), [])
+
+    def test_every_option_is_documented(self):
+        text = self.readme()
+        missing = [opt for opt in sorted(self.parser_options()) if opt not in ("--help", "--version") and "`%s" % opt not in text]
+        self.assertEqual(missing, [])
 
 
 class ChangelogTests(unittest.TestCase):
