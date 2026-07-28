@@ -12,6 +12,7 @@ from .bursts import find_bursts, find_template_bursts
 from .cluster import cluster_entries
 from .classify import LABELS, classify, unclassified
 from .config import ConfigError, load_settings
+from .customrules import forget_labels
 from .incidents import find_incidents
 from .insights import find_insights
 from .reader import read_entries
@@ -181,6 +182,14 @@ def main(argv=None, out=None):
     except ConfigError as exc:
         sys.stderr.write("errorlog-insight: %s\n" % exc)
         return 2
+    try:
+        return run(args, settings, out)
+    finally:
+        forget_labels(settings.custom_rules)   # the names belong to this run, not to the process
+
+
+def run(args, settings, out):
+    """Everything after the arguments and the config file have been read."""
     try:
         offsets = dict(parse_offset(o) for o in args.offset)
     except ValueError as exc:

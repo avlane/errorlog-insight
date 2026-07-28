@@ -14,6 +14,8 @@ First release that calls the output stable.
 * Input errors exit with status 2 and a message; a damaged timestamp no longer stops the run.
 * About a third faster on big logs; the report is byte-for-byte the same whatever the hash seed.
 * Typed data model, `py.typed`.
+* The names of config-file rules are removed again when a run ends, so repeated runs in one process
+  (a test suite, a service) do not see each other's rules.
 
 ## 0.9 (2025)
 

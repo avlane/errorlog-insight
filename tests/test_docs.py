@@ -47,6 +47,15 @@ class DocumentTests(unittest.TestCase):
         self.assertEqual(missing, [])
 
 
+class ClassifierDocTests(unittest.TestCase):
+    def test_every_finding_code_is_in_the_classifier_reference(self):
+        from errorlog_insight.classify import LABELS
+        with open(os.path.join(ROOT, "docs", "classifiers.md"), encoding="utf-8") as f:
+            text = f.read()
+        missing = [c for c in sorted(LABELS) if not re.search(r"(?<![\w-])%s(?![\w-])" % re.escape(c), text)]
+        self.assertEqual(missing, [])
+
+
 class ChangelogTests(unittest.TestCase):
     def test_latest_entry_is_the_package_version(self):
         import errorlog_insight

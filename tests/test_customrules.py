@@ -6,10 +6,10 @@ import tempfile
 import unittest
 from datetime import datetime
 
-from errorlog_insight.classify import classify
+from errorlog_insight.classify import LABELS, classify
 from errorlog_insight.cli import main
 from errorlog_insight.config import ConfigError, load_settings
-from errorlog_insight.customrules import RuleError, make_rule, rules_from_config
+from errorlog_insight.customrules import RuleError, forget_labels, make_rule, rules_from_config
 from errorlog_insight.model import Entry
 from tests.helpers import fixture
 
@@ -37,6 +37,14 @@ advice = Check the licence server and the firewall.
 """
 
 
+class LabelIsolationMixin:
+    """make_rule adds the rule's name to the global report names; give every test its own copy."""
+
+    def setUp(self):
+        saved = dict(LABELS)
+        self.addCleanup(lambda: (LABELS.clear(), LABELS.update(saved)))
+
+
 def entry(text):
     return Entry(datetime(2025, 12, 9, 10, 0), "spid5s", text)
 
@@ -48,7 +56,7 @@ def write(directory, name, text):
     return path
 
 
-class MakeRuleTests(unittest.TestCase):
+class MakeRuleTests(LabelIsolationMixin, unittest.TestCase):
     def test_named_groups_become_details_and_fill_the_title(self):
         rule = make_rule({"name": "Licence", "pattern": r"service at (?P<host>\d+\.\d+\.\d+\.\d+)", "severity": "error",
                           "title": "Licence {host} down", "advice": "Look."})
@@ -89,7 +97,7 @@ class MakeRuleTests(unittest.TestCase):
                 make_rule(spec)
 
 
-class ConfigTests(unittest.TestCase):
+class ConfigTests(LabelIsolationMixin, unittest.TestCase):
     def test_toml_rules(self):
         try:
             import tomllib  # noqa: F401
@@ -115,7 +123,7 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(len(rules_from_config({"rule": {"name": "x", "pattern": "x"}})), 1)
 
 
-class EndToEndTests(unittest.TestCase):
+class EndToEndTests(LabelIsolationMixin, unittest.TestCase):
     def test_custom_rule_findings_appear_in_the_reports(self):
         with tempfile.TemporaryDirectory() as tmp:
             cfg = write(tmp, "eli.ini", "[rule:Config change]\npattern = Configuration option '(?P<option>[^']+)' changed from (?P<old>\\d+) to (?P<new>\\d+)\n"
@@ -142,6 +150,38 @@ class EndToEndTests(unittest.TestCase):
 
     def test_classify_without_extra_rules_is_unchanged(self):
         self.assertEqual(classify([entry("Configuration option 'x' changed from 0 to 4. Run the RECONFIGURE statement to install.")]), [])
+
+
+class LabelLifetimeTests(LabelIsolationMixin, unittest.TestCase):
+    def test_a_cli_run_leaves_the_report_names_as_it_found_them(self):
+        before = dict(LABELS)
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg = write(tmp, "eli.ini", "[rule:Temporary]\npattern = Software\n")
+            out = io.StringIO()
+            main([fixture("noise.log"), "--config", cfg], out=out)
+        self.assertIn("Temporary", out.getvalue())
+        self.assertEqual(LABELS, before)
+
+    def test_a_run_that_fails_also_cleans_up(self):
+        before = dict(LABELS)
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg = write(tmp, "eli.ini", "[rule:Temporary]\npattern = Software\n")
+            with contextlib.redirect_stderr(io.StringIO()):
+                code = main([os.path.join(tmp, "missing"), "--config", cfg], out=io.StringIO())
+        self.assertEqual(code, 2)
+        self.assertEqual(LABELS, before)
+
+    def test_a_rule_that_reuses_a_built_in_code_does_not_rename_or_remove_it(self):
+        rule = make_rule({"name": "My 833", "pattern": "x", "code": "833"})
+        self.assertEqual(LABELS["833"], "Slow I/O (833)")
+        forget_labels([rule])
+        self.assertEqual(LABELS["833"], "Slow I/O (833)")
+
+    def test_a_bad_rule_leaves_none_of_the_good_ones_registered(self):
+        before = dict(LABELS)
+        with self.assertRaises(RuleError):
+            rules_from_config({"rule": [{"name": "Good", "pattern": "x"}, {"name": "Bad", "pattern": "("}]})
+        self.assertEqual(LABELS, before)
 
 
 if __name__ == "__main__":

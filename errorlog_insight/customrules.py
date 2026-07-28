@@ -57,7 +57,9 @@ def make_rule(spec):
     code = str(spec.get("code") or "custom:" + re.sub(r"\W+", "-", name.lower()).strip("-"))
     title_template = str(spec.get("title") or name)
     advice = str(spec.get("advice", ""))
-    LABELS[code] = name
+    owns_label = code not in LABELS    # a rule that reuses a built-in code keeps the built-in name
+    if owns_label:
+        LABELS[code] = name
 
     def custom_rule(entry, ctx):
         m = regex.search(entry.text)
@@ -68,7 +70,16 @@ def make_rule(spec):
         return Finding(entry, "custom", code, severity, title, details, advice)
 
     custom_rule.__name__ = "custom_" + code
+    custom_rule.code = code
+    custom_rule.owns_label = owns_label
     return custom_rule
+
+
+def forget_labels(rules):
+    """Remove the report names that make_rule added, so one run's custom rules do not outlive it."""
+    for rule in rules:
+        if getattr(rule, "owns_label", False):
+            LABELS.pop(rule.code, None)
 
 
 def rules_from_config(data):
@@ -83,4 +94,11 @@ def rules_from_config(data):
             spec = dict(values)
             spec.setdefault("name", section[len("rule:"):])
             specs.append(spec)
-    return [make_rule(spec) for spec in specs]
+    made = []
+    try:
+        for spec in specs:
+            made.append(make_rule(spec))
+    except RuleError:
+        forget_labels(made)      # all or nothing: a bad rule must not leave the good ones registered
+        raise
+    return made

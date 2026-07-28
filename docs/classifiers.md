@@ -11,6 +11,23 @@ write the separate `Error: N, Severity: S, State: X.` entry first, the rule
 reads the state from it (the entry must come from the same process within five
 seconds).
 
+## Codes
+
+A finding's `code` is the SQL Server message number where the message has one. Where it does not, or
+where one rule covers several messages, the code is a short name. `errorlog-insight --list-codes`
+prints all of them; the named ones are:
+
+| code | what it is |
+|---|---|
+| `startup`, `startup-params`, `ready`, `shutdown`, `cycled`, `recovery` | server lifecycle messages |
+| `checkdb` | a DBCC CHECKDB, CHECKTABLE or similar result (17573 is the separate "finished without errors" message) |
+| `flushcache` | a checkpoint flush summary |
+| `io-frozen`, `io-resumed` | a snapshot backup froze and resumed I/O |
+| `stackdump` | a stack dump block |
+| `ag-transition` | "preparing to transition to the ... role" |
+| `traceflag` | DBCC TRACEON or TRACEOFF |
+| `custom:...` | a rule from the config file |
+
 ## Logins: 18456
 
 `Login failed for user 'x'. Reason: ... [CLIENT: ip]`
